@@ -7,7 +7,7 @@
 }
 
 body {
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #e3f2fd, #f5f7fa);
   color: #333;
   min-height: 100vh;
   display: flex;
@@ -28,6 +28,12 @@ body {
 .header-left p {
   font-weight: 600;
   color: #333;
+  font-size: 16px;
+}
+
+.header-left a:hover {
+  color: #007bff;
+  text-decoration: underline;
 }
 
 /* Form Container */
@@ -37,10 +43,11 @@ body {
   background: #fff;
   margin: 40px 0;
   padding: 30px 40px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
   position: relative;
   overflow: hidden;
+  animation: fadeIn 0.6s ease-in-out;
 }
 
 .form-container h1 {
@@ -62,7 +69,7 @@ body {
   width: 100%;
   padding: 14px 16px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 10px;
   outline: none;
   font-size: 16px;
   background: #fff;
@@ -72,7 +79,7 @@ body {
 .input-container input:focus,
 .input-container select:focus {
   border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0,123,255,0.4);
+  box-shadow: 0 0 6px rgba(0,123,255,0.4);
 }
 
 /* Floating labels */
@@ -85,6 +92,7 @@ body {
   font-size: 16px;
   pointer-events: none;
   transition: 0.3s;
+  background: transparent;
 }
 
 .input-container input:focus + label,
@@ -96,25 +104,26 @@ body {
   font-size: 13px;
   color: #007bff;
   background: #fff;
-  padding: 0 5px;
+  padding: 0 6px;
+  border-radius: 5px;
 }
 
 /* Green glowing border when filled */
 .glow-success {
   border-color: #28a745 !important;
-  box-shadow: 0 0 6px #28a745;
+  box-shadow: 0 0 8px #28a745;
 }
 
 /* Submit button */
 button.submit-btn {
   width: 100%;
   padding: 14px;
-  background: #007bff;
+  background: linear-gradient(135deg, #007bff, #0056b3);
   color: #fff;
   font-size: 16px;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -122,7 +131,9 @@ button.submit-btn {
 }
 
 button.submit-btn:hover {
-  background: #0056b3;
+  background: linear-gradient(135deg, #0056b3, #004094);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 button.submit-btn.loading::after {
@@ -152,12 +163,12 @@ button.submit-btn.loading::after {
   background: #4CAF50;
   color: #fff;
   padding: 15px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   display: none;
   font-weight: 600;
   z-index: 1000;
-  transition: 0.3s;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .form-popup.error {
@@ -166,8 +177,16 @@ button.submit-btn.loading::after {
 
 /* File input styling */
 input[type="file"] {
-  padding: 8px;
+  padding: 10px;
   font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px);}
+  to { opacity: 1; transform: translateY(0);}
 }
 
 /* Responsive */
