@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec"; // <-- replace with your Apps Script Web App URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec"; // <-- Apps Script Web App URL
 
   // Dynamic "Other" fields
   const fields = ["designation","country","state","city","business"];
@@ -36,61 +36,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // States & Cities
   const statesAndCities = {
-  "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
-  "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
-  "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat"],
-  "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur"],
-  "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
-  "Goa": ["Panaji","Margao","Vasco da Gama"],
-  "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
-  "Haryana": ["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
-  "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
-  "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
-  "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru","Mysore"],
-  "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
-  "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
-  "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-  "Manipur": ["Imphal","Thoubal","Bishnupur"],
-  "Meghalaya": ["Shillong","Tura","Nongpoh"],
-  "Mizoram": ["Aizawl","Lunglei","Champhai"],
-  "Nagaland": ["Kohima","Dimapur","Mokokchung"],
-  "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
-  "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
-  "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
-  "Sikkim": ["Gangtok","Geyzing","Namchi"],
-  "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
-  "Telangana": ["Hyderabad","Warangal","Nizamabad"],
-  "Tripura": ["Agartala","Udaipur","Dharmanagar"],
-  "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
-  "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
-  "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
-};
+    "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
+    "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
+    "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat"],
+    "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur"],
+    "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
+    "Goa": ["Panaji","Margao","Vasco da Gama"],
+    "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
+    "Haryana": ["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
+    "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
+    "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
+    "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru","Mysore"],
+    "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
+    "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
+    "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+    "Manipur": ["Imphal","Thoubal","Bishnupur"],
+    "Meghalaya": ["Shillong","Tura","Nongpoh"],
+    "Mizoram": ["Aizawl","Lunglei","Champhai"],
+    "Nagaland": ["Kohima","Dimapur","Mokokchung"],
+    "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
+    "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
+    "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
+    "Sikkim": ["Gangtok","Geyzing","Namchi"],
+    "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
+    "Telangana": ["Hyderabad","Warangal","Nizamabad"],
+    "Tripura": ["Agartala","Udaipur","Dharmanagar"],
+    "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
+    "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
+    "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
+  };
 
-
+  const country = document.getElementById('country');
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  // Populate state dropdown
-  for(let st in statesAndCities){
-    const option = document.createElement('option');
-    option.value = st;
-    option.textContent = st;
-    state.appendChild(option);
+  // Populate state dropdown (only if India)
+  function populateStates() {
+    state.innerHTML = '<option value="">Select State</option>';
+    for (let st in statesAndCities) {
+      const option = document.createElement('option');
+      option.value = st;
+      option.textContent = st;
+      state.appendChild(option);
+    }
+    const otherOpt = document.createElement('option');
+    otherOpt.value = "Other";
+    otherOpt.textContent = "Other";
+    state.appendChild(otherOpt);
   }
+  populateStates();
 
-  // Show "Other" fields
+  // Show/hide "Other" fields for designation, business
   fields.forEach(f => {
     document.getElementById(f).addEventListener('change', () => {
       otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
     });
   });
 
+  // Handle Country → India/Other logic
+  country.addEventListener('change', () => {
+    if (country.value === "India") {
+      countryOther.style.display = "none";
+      state.style.display = "block";
+      stateOther.style.display = "none";
+      cityOther.style.display = "none";
+      populateStates();
+      city.innerHTML = '<option value="">Select City</option>';
+    } else { // Other country
+      countryOther.style.display = "block";
+      state.style.display = "none";
+      stateOther.style.display = "block";
+      city.innerHTML = '<option value="Other">Other</option>';
+      cityOther.style.display = "block";
+    }
+  });
+
   // Populate city based on state
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
-    otherFields.city.style.display = "none";
-
-    if(statesAndCities[state.value]){
+    cityOther.style.display = "none";
+    if (statesAndCities[state.value]) {
       statesAndCities[state.value].forEach(ct => {
         const opt = document.createElement('option');
         opt.value = ct;
@@ -106,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Show city "Other" input
   city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
+    cityOther.style.display = (city.value === "Other") ? "block" : "none";
   });
 
   // Convert images to Base64
@@ -173,5 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
       });
   });
-});
 
+  // Initialize ticks display
+  form.querySelectorAll('input, select').forEach(input => {
+    input.dispatchEvent(new Event('input'));
+  });
+});
