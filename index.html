@@ -1,116 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visitor Form</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Data Form</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 
   <!-- PWA manifest -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50" />
 
-  <!-- iOS PWA support -->
+  <!-- iOS support -->
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Visitor Form">
-
-  <!-- iOS App Icons -->
-  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-
-  <!-- iOS Splash Screens -->
-  <link rel="apple-touch-startup-image" href="/splash/launch-640x1136.png" media="(device-width: 320px)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-750x1334.png" media="(device-width: 375px)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-1242x2208.png" media="(device-width: 414px)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-1125x2436.png" media="(device-width: 375px) and (-webkit-device-pixel-ratio: 3)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-828x1792.png" media="(device-width: 414px) and (-webkit-device-pixel-ratio: 2)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-1242x2688.png" media="(device-width: 414px) and (-webkit-device-pixel-ratio: 3)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-1536x2048.png" media="(min-device-width: 768px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-1668x2224.png" media="(min-device-width: 834px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2)">
-  <link rel="apple-touch-startup-image" href="/splash/launch-2048x2732.png" media="(min-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2)">
-
-  <!-- Fallback favicon -->
-  <link rel="icon" href="/icons/favicon.ico" type="image/x-icon">
-
-  <!-- Theme colors -->
-  <meta name="theme-color" content="#1a73e8">
-  <meta name="background-color" content="#ffffff">
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="/form-style.css">
-
-  <!-- Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(reg => console.log('Service Worker registered ✅', reg))
-          .catch(err => console.error('Service Worker failed ❌', err));
-      });
-    }
-  </script>
 </head>
 <body>
   <div class="form-container">
-    <h2>Visitor Registration Form</h2>
-    <form id="customerForm">
-      
+    <h1>Submit Your Details</h1>
+    <form id="dataForm">
+
       <!-- Name -->
-      <label for="name">Full Name</label>
-      <input type="text" id="name" name="name" required>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required
+             pattern="^[A-Za-z\s]+$"
+             title="Only alphabets and spaces allowed" />
 
       <!-- Phone -->
-      <label for="phone">Phone Number</label>
-      <input type="tel" id="phone" name="phone" required>
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" required
+             pattern="^\+?[0-9]{10,15}$"
+             title="Only numbers and optional + sign allowed" />
 
       <!-- Email -->
       <label for="email">Email</label>
-      <input type="email" id="email" name="email">
+      <input type="email" id="email" name="email" required />
 
       <!-- Country -->
       <label for="country">Country</label>
       <select id="country" name="country" required>
-        <option value="">Select Country</option>
+        <option value="">-- Select Country --</option>
         <option value="India">India</option>
         <option value="Other">Other</option>
       </select>
-      <input type="text" id="countryOther" name="countryOther" placeholder="Enter Country" style="display:none;">
 
       <!-- State -->
       <label for="state">State</label>
-      <select id="state" name="state" style="display:none;"></select>
-      <input type="text" id="stateOther" name="stateOther" placeholder="Enter State" style="display:none;">
+      <select id="state" name="state">
+        <option value="">-- Select State --</option>
+      </select>
 
       <!-- City -->
       <label for="city">City</label>
-      <select id="city" name="city"></select>
-      <input type="text" id="cityOther" name="cityOther" placeholder="Enter City" style="display:none;">
-
-      <!-- Business -->
-      <label for="business">Business</label>
-      <select id="business" name="business">
-        <option value="">Select Business</option>
-        <option value="Retail">Retail</option>
-        <option value="Wholesale">Wholesale</option>
-        <option value="Other">Other</option>
+      <select id="city" name="city">
+        <option value="">-- Select City --</option>
       </select>
-      <input type="text" id="businessOther" name="businessOther" placeholder="Enter Business" style="display:none;">
 
-      <!-- Visiting Card Upload -->
-      <label for="vcFront">Upload Visiting Card (Front)</label>
-      <input type="file" id="vcFront" name="vcFront" accept="image/*">
-
-      <label for="vcBack">Upload Visiting Card (Back)</label>
-      <input type="file" id="vcBack" name="vcBack" accept="image/*">
+      <!-- File Upload -->
+      <label for="file">Upload File</label>
+      <input type="file" id="file" name="file" />
 
       <!-- Submit -->
       <button type="submit">Submit</button>
     </form>
-    <div id="formPopup" class="popup"></div>
+    <p id="status"></p>
   </div>
 
-  <!-- JS -->
-  <script src="/form-script.js"></script>
+  <!-- Scripts -->
+  <script src="script.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service Worker registered.', reg))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
