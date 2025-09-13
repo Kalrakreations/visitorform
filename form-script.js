@@ -2,6 +2,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
 
+  // IndexedDB for offline storage
+  let db;
+  const request = indexedDB.open("VisitorFormDB", 1);
+  request.onerror = () => console.error("IndexedDB error");
+  request.onsuccess = (e) => {
+    db = e.target.result;
+    syncOfflineData(); // Try sync on load
+  };
+  request.onupgradeneeded = (e) => {
+    db = e.target.result;
+    if (!db.objectStoreNames.contains("submissions")) {
+      db.createObjectStore("submissions", { autoIncrement: true });
+    }
+  };
+
   // Dynamic "Other" fields
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
@@ -12,34 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
-  // Green glow logic for filled inputs
-  form.querySelectorAll('input, select').forEach(input => {
-    input.addEventListener('input', () => {
-      let isFilled = false;
-
-      // Name validation: only letters
-      if(input.id === 'name') {
-        input.value = input.value.replace(/[^a-zA-Z\s]/g,'');
-      }
-
-      // Phone validation: only numbers and +
-      if(input.id === 'phone') {
-        input.value = input.value.replace(/[^0-9+]/g,'');
-      }
-
-      if (["text","email","tel"].includes(input.type)) {
-        isFilled = input.value.trim() !== "";
-      }
-      if (input.tagName.toLowerCase() === "select") {
-        isFilled = input.value !== "";
-      }
-      if (input.type === "file") {
-        isFilled = input.files.length > 0;
-      }
-
-      input.classList.toggle("glow-success", isFilled);
-    });
-  });
+  const country = document.getElementById('country');
+  const state = document.getElementById('state');
+  const city = document.getElementById('city');
 
   // States & Cities
   const statesAndCities = {
@@ -73,10 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
   };
 
-  const country = document.getElementById('country');
-  const state = document.getElementById('state');
-  const city = document.getElementById('city');
-
   function populateStates() {
     state.innerHTML = '<option value="">Select State</option>';
     for (let st in statesAndCities) {
@@ -94,19 +80,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Country logic
   country.addEventListener('change', () => {
-    if(country.value === "India") {
+    if (country.value === "India") {
       otherFields.country.style.display = "none";
       state.style.display = "block";
       otherFields.state.style.display = "none";
       otherFields.city.style.display = "none";
       populateStates();
       city.innerHTML = '<option value="">Select City</option>';
-    } else if(country.value === "Other") {
+    } else if (country.value === "Other") {
       otherFields.country.style.display = "block";
       state.style.display = "none";
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
+    } else {
+      otherFields.country.style.display = "none";
+      state.style.display = "none";
+      city.innerHTML = '<option value="">Select City</option>';
+      otherFields.state.style.display = "none";
+      otherFields.city.style.display = "none";
     }
   });
 
@@ -114,12 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
-    if(statesAndCities[state.value]){
-      statesAndCities[state.value].forEach(ct=>{
+
+    if (statesAndCities[state.value]) {
+      statesAndCities[state.value].forEach(ct => {
         city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
       });
       city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    } else if(state.value === "Other") {
+    } else if (state.value === "Other") {
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
@@ -127,23 +120,72 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value==="Other")?"block":"none";
+    otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
+  });
+
+  // Input glow & validation
+  form.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('input', () => {
+      let isFilled = false;
+
+      if (["text","email","tel"].includes(input.type)) {
+        isFilled = input.value.trim() !== "";
+      }
+      if (input.tagName.toLowerCase() === "select") {
+        isFilled = input.value !== "";
+      }
+      if (input.type === "file") {
+        isFilled = input.files.length > 0;
+      }
+
+      input.classList.toggle("glow-success", isFilled);
+
+      // Validation
+      if(input.id === "name") input.value = input.value.replace(/[^a-zA-Z\s]/g,'');
+      if(input.id === "phone") input.value = input.value.replace(/[^0-9+]/g,'');
+    });
   });
 
   // Convert images to Base64
   async function getImageBase64(input){
-    return new Promise((resolve,reject)=>{
-      if(input.files.length===0){resolve(null);return;}
+    return new Promise((resolve, reject) => {
+      if(input.files.length === 0){ resolve(null); return; }
       const file = input.files[0];
       const reader = new FileReader();
-      reader.onload = ()=>resolve({base64:reader.result.split(',')[1], name:file.name});
-      reader.onerror = err=>reject(err);
+      reader.onload = () => resolve({ base64: reader.result.split(',')[1], name: file.name });
+      reader.onerror = err => reject(err);
       reader.readAsDataURL(file);
     });
   }
 
+  // Save offline
+  function saveOffline(data) {
+    const tx = db.transaction("submissions","readwrite");
+    const store = tx.objectStore("submissions");
+    store.add(data);
+  }
+
+  // Sync offline data
+  function syncOfflineData(){
+    if(!navigator.onLine || !db) return;
+    const tx = db.transaction("submissions","readwrite");
+    const store = tx.objectStore("submissions");
+    const getAll = store.getAll();
+    getAll.onsuccess = () => {
+      getAll.result.forEach(submission => {
+        fetch(SCRIPT_URL, { method:'POST', body: submission })
+          .then(res => res.text())
+          .then(msg => {
+            if(msg.includes("SUCCESS")) {
+              store.delete(submission.id);
+            }
+          });
+      });
+    };
+  }
+
   // Form submission
-  form.addEventListener('submit', async e=>{
+  form.addEventListener('submit', async e => {
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.classList.add('loading');
@@ -155,37 +197,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    fetch(SCRIPT_URL,{method:'POST',body:formData})
-      .then(res=>res.text())
-      .then(msg=>{
+    if(!navigator.onLine){
+      saveOffline(formData);
+      alert("✅ Saved offline. Will submit when internet is back.");
+      form.reset();
+      submitBtn.classList.remove('loading');
+      location.reload();
+      return;
+    }
+
+    fetch(SCRIPT_URL, { method:'POST', body: formData })
+      .then(res => res.text())
+      .then(msg => {
         submitBtn.classList.remove('loading');
         const popup = document.getElementById('formPopup');
         if(msg.includes("SUCCESS")){
           popup.textContent = "✅ Form submitted successfully!";
           popup.classList.remove('error');
           popup.style.display = "block";
-          setTimeout(()=>location.reload(), 2000); // Auto refresh after 2 seconds
+          form.reset();
+          form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
+          setTimeout(()=>{popup.style.display='none'; location.reload();}, 2000);
         } else {
           popup.textContent = "❌ Form submission failed!";
           popup.classList.add('error');
           popup.style.display = "block";
         }
-        setTimeout(()=>{popup.style.display='none';},3000);
       })
-      .catch(err=>{
+      .catch(err => {
         submitBtn.classList.remove('loading');
-        const popup = document.getElementById('formPopup');
-        popup.textContent = "⚠️ Submission error!";
-        popup.classList.add('error');
-        popup.style.display = "block";
-        setTimeout(()=>{popup.style.display='none';},3000);
+        saveOffline(formData);
+        alert("⚠️ Saved offline due to error. Will submit when internet is back.");
+        form.reset();
+        location.reload();
         console.error(err);
       });
   });
 
-  // Trigger glow on load if pre-filled
-  form.querySelectorAll('input, select').forEach(input=>{
-    input.dispatchEvent(new Event('input'));
-  });
+  // Auto-sync when back online
+  window.addEventListener('online', syncOfflineData);
 
+  // Trigger glow on load if pre-filled
+  form.querySelectorAll('input, select').forEach(input => input.dispatchEvent(new Event('input')));
 });
