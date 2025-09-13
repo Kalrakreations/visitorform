@@ -1,165 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visitor Form - Sahil Kalra</title>
-<link rel="stylesheet" href="form-style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Visitor Form — Sahil Kalra</title>
 
-<!-- Favicon & PWA icons -->
-<link rel="icon" href="/icons/icon192.png">
-<link rel="apple-touch-icon" href="/icons/icon192.png">
-<link rel="manifest" href="/manifest.json">
+  <!-- main stylesheet (we'll update next) -->
+  <link rel="stylesheet" href="/form-style.css">
 
-<!-- Theme color for browser -->
-<meta name="theme-color" content="#007bff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- PWA / Home-screen icons & manifest -->
+  <link rel="icon" href="/icons/icon192.png">
+  <link rel="apple-touch-icon" href="/icons/icon192.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-<!-- Dark Mode Support -->
-<style>
-@media (prefers-color-scheme: dark) {
-  body { background: #121212; color: #eee; }
-  .form-container { background: #1e1e1e; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
-  .site-header { background: #1a1a1a; color: #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-  input, select { background: #2a2a2a; color: #eee; border: 1px solid #555; }
-  input:focus, select:focus { border-color: #0d6efd; box-shadow: 0 0 5px rgba(13,110,253,0.5); }
-  .submit-btn { background: #0d6efd; color: #fff; }
-  .submit-btn:hover { background: #084298; }
-  .form-popup { color: #fff; }
-}
-</style>
-
+  <!-- small inline note: fonts should be loaded in CSS (system fonts recommended for speed) -->
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-left">
-    <p>
-      <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" style="text-decoration:none; color:inherit; font-weight:600;">
-        Sahil Kalra
-      </a> | +91 9646290118
-    </p>
+  <!-- HEADER -->
+  <header class="site-header" role="banner">
+    <div class="header-left">
+      <p>
+        <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" rel="noopener noreferrer">
+          Sahil Kalra
+        </a>
+        &nbsp;|&nbsp; +91 9646290118
+      </p>
+    </div>
+
+    <!-- connection + queue indicators: JS will update these -->
+    <div class="header-right" aria-hidden="true">
+      <span id="connectionStatus" title="Online / Offline status">●</span>
+      <span id="queueCount" title="Queued submissions" aria-live="polite" style="margin-left:10px;">0</span>
+    </div>
+  </header>
+
+  <!-- OFFLINE BANNER (hidden by default; JS will toggle) -->
+  <div id="offlineBanner" class="offline-banner" role="status" aria-live="polite" style="display:none;">
+    You are offline — submissions will be saved locally and automatically synced when online.
   </div>
-</header>
 
-<main class="form-container">
-  <h1>Visitor Form</h1>
-  <form id="customerForm" autocomplete="off">
-    <!-- Event Name -->
-    <div class="input-container">
-      <input type="text" name="eventName" placeholder=" " id="eventName">
-      <label for="eventName">Event Name</label>
-    </div>
+  <!-- MAIN FORM -->
+  <main class="form-container" role="main">
+    <h1>Visitor Form</h1>
 
-    <!-- Name -->
-    <div class="input-container">
-      <input type="text" name="name" placeholder=" " id="name" required>
-      <label for="name">Name *</label>
-    </div>
+    <!-- quick help area (for drag-drop instructions, camera etc) -->
+    <p class="muted small">Use camera or upload visiting card. Form works offline and syncs automatically.</p>
 
-    <!-- Phone -->
-    <div class="input-container">
-      <input type="tel" name="phone" placeholder=" " id="phone" required>
-      <label for="phone">Phone *</label>
-    </div>
+    <form id="customerForm" autocomplete="off" novalidate>
 
-    <!-- Email -->
-    <div class="input-container">
-      <input type="email" name="email" placeholder=" " id="email">
-      <label for="email">Email</label>
-    </div>
+      <!-- Event -->
+      <div class="input-container">
+        <input id="eventName" name="eventName" type="text" placeholder=" " />
+        <label for="eventName">Event Name</label>
+      </div>
 
-    <!-- Company -->
-    <div class="input-container">
-      <input type="text" name="company" placeholder=" " id="company">
-      <label for="company">Company</label>
-    </div>
+      <!-- Name (letters + spaces only) -->
+      <div class="input-container">
+        <input id="name" name="name" type="text" placeholder=" " required
+               inputmode="text" autocomplete="name"
+               aria-required="true"
+               title="Only letters and spaces allowed" />
+        <label for="name">Name *</label>
+      </div>
 
-    <!-- Designation -->
-    <div class="input-container">
-      <select id="designation" name="designation">
-        <option value="">Select Designation</option>
-        <option value="Executive">Executive</option>
-        <option value="Manager">Manager</option>
-        <option value="CEO">CEO</option>
-        <option value="Founder">Founder</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="designationOther" name="designationOther" placeholder="Enter your designation" style="display:none;">
-    </div>
+      <!-- Phone (only + and numbers permitted) -->
+      <div class="input-container">
+        <input id="phone" name="phone" type="tel" placeholder=" " required
+               inputmode="tel" autocomplete="tel"
+               pattern="^\+?\d{7,15}$"
+               title="Enter phone number (only + and digits). Example: +919876543210" />
+        <label for="phone">Phone *</label>
+      </div>
 
-    <!-- Country -->
-    <div class="input-container">
-      <select id="country" name="country">
-        <option value="India">India</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
-    </div>
+      <!-- Email -->
+      <div class="input-container">
+        <input id="email" name="email" type="email" placeholder=" " inputmode="email" autocomplete="email" />
+        <label for="email">Email</label>
+      </div>
 
-    <!-- State -->
-    <div class="input-container">
-      <select id="state" name="state">
-        <option value="">Select State</option>
-      </select>
-      <input type="text" id="stateOther" name="stateOther" placeholder="Enter state" style="display:none;">
-    </div>
+      <!-- Company -->
+      <div class="input-container">
+        <input id="company" name="company" type="text" placeholder=" " />
+        <label for="company">Company</label>
+      </div>
 
-    <!-- City -->
-    <div class="input-container">
-      <select id="city" name="city">
-        <option value="">Select City</option>
-      </select>
-      <input type="text" id="cityOther" name="cityOther" placeholder="Enter city" style="display:none;">
-    </div>
+      <!-- Designation (select + other) -->
+      <div class="input-container">
+        <select id="designation" name="designation" aria-label="Designation">
+          <option value="">Select Designation</option>
+          <option>Executive</option>
+          <option>Manager</option>
+          <option>CEO</option>
+          <option>Founder</option>
+          <option>Other</option>
+        </select>
+        <input id="designationOther" name="designationOther" type="text" placeholder="Enter your designation" style="display:none;" />
+        <label for="designation">Designation</label>
+      </div>
 
-    <!-- Business Type -->
-    <div class="input-container">
-      <select id="business" name="business">
-        <option value="">Select Business</option>
-        <option value="Employee">Employee</option>
-        <option value="Trader">Trader</option>
-        <option value="Exporter">Exporter</option>
-        <option value="E-commerce">E-commerce</option>
-        <option value="Certification Services">Certification Services</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
-    </div>
+      <!-- Country (India default) -->
+      <div class="input-container">
+        <select id="country" name="country" aria-label="Country">
+          <option value="India" selected>India</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="countryOther" name="countryOther" type="text" placeholder="Enter country" style="display:none;" />
+        <label for="country">Country</label>
+      </div>
 
-    <!-- Visiting Card Front -->
-    <div class="input-container">
-      <input type="file" name="vcFront" id="vcFront" accept="image/*">
-      <label for="vcFront">Visiting Card (Front)</label>
-    </div>
+      <!-- State (populated by JS) -->
+      <div class="input-container">
+        <select id="state" name="state" aria-label="State">
+          <option value="">Select State</option>
+        </select>
+        <input id="stateOther" name="stateOther" type="text" placeholder="Enter state" style="display:none;" />
+        <label for="state">State</label>
+      </div>
 
-    <!-- Visiting Card Back -->
-    <div class="input-container">
-      <input type="file" name="vcBack" id="vcBack" accept="image/*">
-      <label for="vcBack">Visiting Card (Back)</label>
-    </div>
+      <!-- City (populated by JS) -->
+      <div class="input-container">
+        <select id="city" name="city" aria-label="City">
+          <option value="">Select City</option>
+        </select>
+        <input id="cityOther" name="cityOther" type="text" placeholder="Enter city" style="display:none;" />
+        <label for="city">City</label>
+      </div>
 
-    <button type="submit" class="submit-btn">Submit</button>
-  </form>
-</main>
+      <!-- Business -->
+      <div class="input-container">
+        <select id="business" name="business" aria-label="Business">
+          <option value="">Select Business</option>
+          <option>Employee</option>
+          <option>Trader</option>
+          <option>Exporter</option>
+          <option>E-commerce</option>
+          <option>Certification Services</option>
+          <option>Other</option>
+        </select>
+        <input id="businessOther" name="businessOther" type="text" placeholder="Enter business type" style="display:none;" />
+        <label for="business">Business Type</label>
+      </div>
 
-<div id="formPopup" class="form-popup">Form submitted successfully!</div>
+      <!-- Visiting card uploads - drag & drop + camera capture + preview + progress -->
+      <fieldset class="file-fieldset" aria-labelledby="vcLegend">
+        <legend id="vcLegend">Visiting Card (Front & Back)</legend>
 
-<!-- JS -->
-<script src="form-script.js"></script>
+        <!-- FRONT -->
+        <div class="file-drop" data-target="vcFront" id="vcFrontDrop" tabindex="0">
+          <input id="vcFront" name="vcFront" type="file" accept="image/*" capture="environment" />
+          <div class="drop-instructions">Drop or tap to upload front (camera on mobile)</div>
+          <div class="thumb-wrap">
+            <img id="vcFrontPreview" alt="Front preview" style="display:none;" />
+            <button type="button" class="remove-file" data-remove="vcFront" style="display:none;">Remove</button>
+            <div class="progress" id="vcFrontProgress" aria-hidden="true" style="display:none;">
+              <div class="progress-bar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
 
-<!-- Service Worker Registration -->
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('Service Worker registered:', reg))
-      .catch(err => console.error('Service Worker registration failed:', err));
-  });
-}
-</script>
+        <!-- BACK -->
+        <div class="file-drop" data-target="vcBack" id="vcBackDrop" tabindex="0">
+          <input id="vcBack" name="vcBack" type="file" accept="image/*" capture="environment" />
+          <div class="drop-instructions">Drop or tap to upload back (camera on mobile)</div>
+          <div class="thumb-wrap">
+            <img id="vcBackPreview" alt="Back preview" style="display:none;" />
+            <button type="button" class="remove-file" data-remove="vcBack" style="display:none;">Remove</button>
+            <div class="progress" id="vcBackProgress" aria-hidden="true" style="display:none;">
+              <div class="progress-bar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
 
+      </fieldset>
+
+      <!-- Submission row -->
+      <div class="form-actions">
+        <button type="submit" class="submit-btn">Submit</button>
+        <button type="button" id="previewQueueBtn" class="muted small" style="margin-left:12px;">Queued (<span id="queueIndicator">0</span>)</button>
+      </div>
+
+    </form>
+
+    <!-- queued submissions list (JS will populate) -->
+    <section id="queueList" class="queue-list" style="display:none;">
+      <h2>Queued submissions</h2>
+      <ul id="queueItems" aria-live="polite"></ul>
+    </section>
+
+  </main>
+
+  <!-- popup for success/error messages -->
+  <div id="formPopup" class="form-popup" role="status" aria-live="polite" style="display:none;"></div>
+
+  <!-- service worker registration (registers /service-worker.js) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service Worker registered.', reg))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+
+  <!-- main behaviour script (we'll update next) -->
+  <script src="/form-script.js" defer></script>
+
+  <!-- helpful notes for developers (hidden) -->
+  <!--
+    JS hooks to implement next:
+      - toggle #offlineBanner visibility & set #connectionStatus (online/offline)
+      - populate #state and #city from statesAndCities object
+      - handle "Other" inputs display logic (designationOther, countryOther, stateOther, cityOther, businessOther)
+      - handle drag/drop & click for .file-drop elements:
+          * input change -> render preview image into #vcFrontPreview / #vcBackPreview
+          * show remove button & progress bars
+      - IndexedDB queue logic & sync when navigator.onLine
+      - update #queueIndicator and #queueItems
+  -->
 </body>
 </html>
-
