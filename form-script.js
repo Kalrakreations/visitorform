@@ -12,21 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
-  // Border glow logic instead of tick
+  // Green glow effect
   form.querySelectorAll('input, select').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
-
-      if (["text","email","tel"].includes(input.type)) {
-        isFilled = input.value.trim() !== "";
-      }
-      if (input.tagName.toLowerCase() === "select") {
-        isFilled = input.value !== "";
-      }
-      if (input.type === "file") {
-        isFilled = input.files.length > 0;
-      }
-
+      if (["text","email","tel"].includes(input.type)) isFilled = input.value.trim() !== "";
+      if (input.tagName.toLowerCase() === "select") isFilled = input.value !== "";
+      if (input.type === "file") isFilled = input.files.length > 0;
       input.classList.toggle("glow-success", isFilled);
     });
   });
@@ -97,26 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
-    } else {
-      otherFields.country.style.display = "none";
-      state.style.display = "none";
-      city.innerHTML = '<option value="">Select City</option>';
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
     }
   });
 
-  // Populate cities
+  // Populate cities based on state
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
-
-    if (statesAndCities[state.value]) {
+    if(statesAndCities[state.value]){
       statesAndCities[state.value].forEach(ct => {
         city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
       });
       city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    } else if (state.value === "Other") {
+    } else if(state.value === "Other"){
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
