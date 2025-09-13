@@ -86,22 +86,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     const formData = new FormData(form);
 
-    // Handle image uploads
-    for(let f of ['vcFront','vcBack']){
-      const fi = document.getElementById(f);
-      if(fi.files.length>0){
-        const file = fi.files[0];
-        const base64 = await new Promise((res,rej)=>{
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload=()=>res(reader.result);
-          reader.onerror=err=>rej(err);
-        });
-        formData.append(f+'Base64', base64.split(',')[1]);
-        formData.append(f+'Name', file.name);
-      }
-    }
-
     // Send to Google Sheets via Apps Script
     fetch(SCRIPT_URL, {method:'POST', body:formData})
       .then(res=>res.text())
@@ -133,3 +117,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
       });
   });
 });
+
