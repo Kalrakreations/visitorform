@@ -54,7 +54,7 @@ body {
 /* Input Container */
 .input-container {
   position: relative;
-  margin: 25px 0;
+  margin: 20px 0;
 }
 
 .input-container input,
@@ -66,14 +66,13 @@ body {
   outline: none;
   font-size: 16px;
   background: #fff;
-  transition: all 0.3s ease;
+  transition: 0.3s;
 }
 
-/* Focus */
 .input-container input:focus,
 .input-container select:focus {
   border-color: #007bff;
-  box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 0 5px rgba(0,123,255,0.4);
 }
 
 /* Floating labels */
@@ -86,8 +85,6 @@ body {
   font-size: 16px;
   pointer-events: none;
   transition: 0.3s;
-  background: #fff;
-  padding: 0 4px;
 }
 
 .input-container input:focus + label,
@@ -98,19 +95,14 @@ body {
   left: 12px;
   font-size: 13px;
   color: #007bff;
+  background: #fff;
+  padding: 0 5px;
 }
 
-/* Glow states */
-.input-container input.valid,
-.input-container select.valid {
-  border: 2px solid #4CAF50;
-  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
-}
-
-.input-container input.invalid,
-.input-container select.invalid {
-  border: 2px solid #f44336;
-  box-shadow: 0 0 6px rgba(244, 67, 54, 0.6);
+/* Green glowing border when filled */
+.glow-success {
+  border-color: #28a745 !important;
+  box-shadow: 0 0 6px #28a745;
 }
 
 /* Submit button */
