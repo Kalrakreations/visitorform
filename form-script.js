@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec"; // <-- Apps Script Web App URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
 
   // Dynamic "Other" fields
   const fields = ["designation","country","state","city","business"];
@@ -17,23 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', () => {
       let isFilled = false;
 
-      if (input.type === "text" || input.type === "email" || input.type === "tel") {
+      if (["text","email","tel"].includes(input.type)) {
         isFilled = input.value.trim() !== "";
       }
-
       if (input.tagName.toLowerCase() === "select") {
         isFilled = input.value !== "";
       }
-
       if (input.type === "file") {
         isFilled = input.files.length > 0;
       }
 
-      if (isFilled) {
-        input.classList.add("glow-success");
-      } else {
-        input.classList.remove("glow-success");
-      }
+      input.classList.toggle("glow-success", isFilled);
     });
   });
 
@@ -49,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     "Haryana": ["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
     "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
     "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
-    "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru","Mysore"],
+    "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru"],
     "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
     "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
     "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
@@ -73,19 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  // Populate states for India
   function populateStates() {
     state.innerHTML = '<option value="">Select State</option>';
     for (let st in statesAndCities) {
-      const option = document.createElement('option');
-      option.value = st;
-      option.textContent = st;
-      state.appendChild(option);
+      state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
     }
-    const otherOpt = document.createElement('option');
-    otherOpt.value = "Other";
-    otherOpt.textContent = "Other";
-    state.appendChild(otherOpt);
+    state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
   }
 
   // Show/hide "Other" fields
@@ -104,34 +91,38 @@ document.addEventListener('DOMContentLoaded', () => {
       otherFields.city.style.display = "none";
       populateStates();
       city.innerHTML = '<option value="">Select City</option>';
-    } else {
+    } else if (country.value === "Other") {
       otherFields.country.style.display = "block";
       state.style.display = "none";
+      otherFields.state.style.display = "block";
+      city.innerHTML = '<option value="Other">Other</option>';
+      otherFields.city.style.display = "block";
+    } else {
+      otherFields.country.style.display = "none";
+      state.style.display = "none";
+      city.innerHTML = '<option value="">Select City</option>';
+      otherFields.state.style.display = "none";
+      otherFields.city.style.display = "none";
+    }
+  });
+
+  // Populate cities
+  state.addEventListener('change', () => {
+    city.innerHTML = '<option value="">Select City</option>';
+    otherFields.city.style.display = "none";
+
+    if (statesAndCities[state.value]) {
+      statesAndCities[state.value].forEach(ct => {
+        city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
+      });
+      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
+    } else if (state.value === "Other") {
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
     }
   });
 
-  // Populate cities based on state
-  state.addEventListener('change', () => {
-    city.innerHTML = '<option value="">Select City</option>';
-    otherFields.city.style.display = "none";
-    if (statesAndCities[state.value]) {
-      statesAndCities[state.value].forEach(ct => {
-        const opt = document.createElement('option');
-        opt.value = ct;
-        opt.textContent = ct;
-        city.appendChild(opt);
-      });
-      const otherOpt = document.createElement('option');
-      otherOpt.value = "Other";
-      otherOpt.textContent = "Other";
-      city.appendChild(otherOpt);
-    }
-  });
-
-  // Show city "Other"
   city.addEventListener('change', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
@@ -139,10 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Convert images to Base64
   async function getImageBase64(input){
     return new Promise((resolve, reject) => {
-      if(input.files.length === 0){
-        resolve(null);
-        return;
-      }
+      if(input.files.length === 0){ resolve(null); return; }
       const file = input.files[0];
       const reader = new FileReader();
       reader.onload = () => resolve({ base64: reader.result.split(',')[1], name: file.name });
@@ -161,14 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const vcBack = await getImageBase64(document.getElementById('vcBack'));
 
     const formData = new FormData(form);
-    if(vcFront){
-      formData.append('vcFrontBase64', vcFront.base64);
-      formData.append('vcFrontName', vcFront.name);
-    }
-    if(vcBack){
-      formData.append('vcBackBase64', vcBack.base64);
-      formData.append('vcBackName', vcBack.name);
-    }
+    if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
+    if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
     fetch(SCRIPT_URL, { method:'POST', body: formData })
       .then(res => res.text())
@@ -176,13 +158,13 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.remove('loading');
         const popup = document.getElementById('formPopup');
         if(msg.includes("SUCCESS")){
-          popup.textContent = "Form submitted successfully!";
+          popup.textContent = "✅ Form submitted successfully!";
           popup.classList.remove('error');
           popup.style.display = "block";
           form.reset();
           form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
         } else {
-          popup.textContent = "Form submission failed!";
+          popup.textContent = "❌ Form submission failed!";
           popup.classList.add('error');
           popup.style.display = "block";
         }
@@ -191,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(err => {
         submitBtn.classList.remove('loading');
         const popup = document.getElementById('formPopup');
-        popup.textContent = "Submission error!";
+        popup.textContent = "⚠️ Submission error!";
         popup.classList.add('error');
         popup.style.display = "block";
         setTimeout(()=>{popup.style.display='none';}, 3000);
@@ -199,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 
-  // Initialize glow effect
+  // Trigger glow on load if pre-filled
   form.querySelectorAll('input, select').forEach(input => {
     input.dispatchEvent(new Event('input'));
   });
