@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZDIFUA8QZ01dptKXHil5SP1EtKC0gd-HGNXxkX5RMiR7JM_qXe92CN_ubHv5zQ2HDdA/exec"; // Replace with your Apps Script Web App URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec"; // Replace with your Apps Script Web App URL
 
   const fields = ["designation", "country", "state", "city", "business"];
   const otherFields = {
@@ -146,3 +146,4 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 });
+
