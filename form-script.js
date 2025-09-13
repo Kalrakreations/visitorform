@@ -36,14 +36,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // States & Cities
   const statesAndCities = {
-    "Punjab":["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
-    "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-    "Karnataka":["Bengaluru","Mysuru","Hubballi","Mangaluru"],
-    "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli"],
-    "Delhi":["New Delhi","Dwarka","Rohini"],
-    "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
-    // Add all other states & cities
-  };
+  "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
+  "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
+  "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat"],
+  "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur"],
+  "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
+  "Goa": ["Panaji","Margao","Vasco da Gama"],
+  "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
+  "Haryana": ["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
+  "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
+  "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
+  "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru","Mysore"],
+  "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
+  "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
+  "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+  "Manipur": ["Imphal","Thoubal","Bishnupur"],
+  "Meghalaya": ["Shillong","Tura","Nongpoh"],
+  "Mizoram": ["Aizawl","Lunglei","Champhai"],
+  "Nagaland": ["Kohima","Dimapur","Mokokchung"],
+  "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
+  "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
+  "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
+  "Sikkim": ["Gangtok","Geyzing","Namchi"],
+  "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
+  "Telangana": ["Hyderabad","Warangal","Nizamabad"],
+  "Tripura": ["Agartala","Udaipur","Dharmanagar"],
+  "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
+  "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
+  "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
+};
+
 
   const state = document.getElementById('state');
   const city = document.getElementById('city');
@@ -152,3 +174,4 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 });
+
