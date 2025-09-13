@@ -12,35 +12,29 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
-  // Glow validation logic
-  function validateInput(input) {
-    let valid = false;
-
-    if (input.type === "text" || input.type === "email" || input.type === "tel") {
-      valid = input.value.trim() !== "";
-    }
-
-    if (input.tagName.toLowerCase() === "select") {
-      valid = input.value !== "";
-    }
-
-    if (input.type === "file") {
-      valid = input.files.length > 0;
-    }
-
-    if (valid) {
-      input.classList.add("valid");
-      input.classList.remove("invalid");
-    } else {
-      input.classList.remove("valid");
-      if (input.hasAttribute("required")) {
-        input.classList.add("invalid");
-      }
-    }
-  }
-
+  // Border glow logic instead of tick
   form.querySelectorAll('input, select').forEach(input => {
-    input.addEventListener('input', () => validateInput(input));
+    input.addEventListener('input', () => {
+      let isFilled = false;
+
+      if (input.type === "text" || input.type === "email" || input.type === "tel") {
+        isFilled = input.value.trim() !== "";
+      }
+
+      if (input.tagName.toLowerCase() === "select") {
+        isFilled = input.value !== "";
+      }
+
+      if (input.type === "file") {
+        isFilled = input.files.length > 0;
+      }
+
+      if (isFilled) {
+        input.classList.add("glow-success");
+      } else {
+        input.classList.remove("glow-success");
+      }
+    });
   });
 
   // States & Cities
@@ -79,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  // Populate state dropdown (only if India)
+  // Populate states for India
   function populateStates() {
     state.innerHTML = '<option value="">Select State</option>';
     for (let st in statesAndCities) {
@@ -101,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Handle Country → India/Other logic
+  // Country logic
   country.addEventListener('change', () => {
     if (country.value === "India") {
       otherFields.country.style.display = "none";
@@ -119,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Populate city based on state
+  // Populate cities based on state
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
@@ -137,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Show city "Other" input
+  // Show city "Other"
   city.addEventListener('change', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
@@ -163,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.classList.add('loading');
 
-    // Convert images
     const vcFront = await getImageBase64(document.getElementById('vcFront'));
     const vcBack = await getImageBase64(document.getElementById('vcBack'));
 
@@ -177,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
       formData.append('vcBackName', vcBack.name);
     }
 
-    // Send to Google Apps Script
     fetch(SCRIPT_URL, { method:'POST', body: formData })
       .then(res => res.text())
       .then(msg => {
@@ -188,9 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
           popup.classList.remove('error');
           popup.style.display = "block";
           form.reset();
-          form.querySelectorAll('input, select').forEach(input => {
-            input.classList.remove("valid", "invalid");
-          });
+          form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
         } else {
           popup.textContent = "Form submission failed!";
           popup.classList.add('error');
@@ -209,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 
-  // Initialize validation glow
+  // Initialize glow effect
   form.querySelectorAll('input, select').forEach(input => {
-    validateInput(input);
+    input.dispatchEvent(new Event('input'));
   });
 });
