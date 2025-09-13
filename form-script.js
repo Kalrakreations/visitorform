@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec"; // Replace with your Apps Script Web App URL
+  const SCRIPT_URL = "YOUR_GOOGLE_WEBAPP_URL"; // <-- replace with your Apps Script Web App URL
 
+  // Dynamic Other fields
   const fields = ["designation", "country", "state", "city", "business"];
   const otherFields = {
     designation: document.getElementById('designationOther'),
@@ -11,11 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
-  // Tick icons
+  // Tick icons appear only when field is filled
   form.querySelectorAll('input, select').forEach(input => {
     input.addEventListener('input', () => {
       const tick = input.parentElement.querySelector('.tick');
-      tick.style.display = input.value ? "block" : "none";
+      if (input.value) tick.style.transform = "translateY(-50%) scale(1)";
+      else tick.style.transform = "translateY(-50%) scale(0)";
     });
   });
 
@@ -33,42 +35,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  // Populate states
+  // Populate states dropdown
   for (let st in statesAndCities) {
-    const option = document.createElement('option');
-    option.value = st;
-    option.textContent = st;
-    state.appendChild(option);
+    const opt = document.createElement('option');
+    opt.value = st;
+    opt.textContent = st;
+    state.appendChild(opt);
   }
 
-  // Handle Other fields
+  // Handle "Other" fields
   fields.forEach(f => {
     document.getElementById(f).addEventListener('change', () => {
-      otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
+      if (document.getElementById(f).value === "Other") {
+        otherFields[f].style.display = "block";
+      } else {
+        otherFields[f].style.display = "none";
+      }
     });
   });
 
-  // Populate cities dynamically
+  // Populate cities based on selected state
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
 
-    if (state.value === "Other") {
-      otherFields.state.style.display = "block";
-    } else {
-      otherFields.state.style.display = "none";
-      if (statesAndCities[state.value]) {
-        statesAndCities[state.value].forEach(ct => {
-          const opt = document.createElement('option');
-          opt.value = ct;
-          opt.textContent = ct;
-          city.appendChild(opt);
-        });
-        const otherOpt = document.createElement('option');
-        otherOpt.value = "Other";
-        otherOpt.textContent = "Other";
-        city.appendChild(otherOpt);
-      }
+    if (statesAndCities[state.value]) {
+      statesAndCities[state.value].forEach(ct => {
+        const opt = document.createElement('option');
+        opt.value = ct;
+        opt.textContent = ct;
+        city.appendChild(opt);
+      });
+      const otherOpt = document.createElement('option');
+      otherOpt.value = "Other";
+      otherOpt.textContent = "Other";
+      city.appendChild(otherOpt);
     }
   });
 
@@ -76,44 +77,40 @@ document.addEventListener('DOMContentLoaded', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
 
-  // Form submit
+  // Convert uploaded images to Base64
+  function getImageBase64(input) {
+    return new Promise((resolve, reject) => {
+      if (input.files.length === 0) {
+        resolve(null);
+        return;
+      }
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => resolve({ base64: reader.result.split(',')[1], name: file.name });
+      reader.onerror = err => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.classList.add('loading');
 
-    const formData = new FormData();
+    // Convert images to Base64
+    const vcFront = await getImageBase64(document.getElementById('vcFront'));
+    const vcBack = await getImageBase64(document.getElementById('vcBack'));
 
-    // Collect all input values, handling Other fields
-    fields.forEach(f => {
-      const val = document.getElementById(f).value;
-      formData.append(f, val === "Other" ? otherFields[f].value : val);
-    });
-
-    ["eventName", "name", "phone", "email", "company"].forEach(f => {
-      formData.append(f, form.querySelector(`[name="${f}"]`).value);
-    });
-
-    // Handle image uploads
-    const imageFields = ["vcFront", "vcBack"];
-    const readImages = imageFields.map(id => {
-      return new Promise(resolve => {
-        const fileInput = document.getElementById(id);
-        if (fileInput.files.length > 0) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            formData.append(id + "Base64", base64);
-            formData.append(id + "Name", fileInput.files[0].name);
-            resolve();
-          };
-          reader.readAsDataURL(fileInput.files[0]);
-        } else resolve(); // No file uploaded
-      });
-    });
-
-    // Wait for all images to be read
-    await Promise.all(readImages);
+    const formData = new FormData(form);
+    if (vcFront) {
+      formData.append('vcFrontBase64', vcFront.base64);
+      formData.append('vcFrontName', vcFront.name);
+    }
+    if (vcBack) {
+      formData.append('vcBackBase64', vcBack.base64);
+      formData.append('vcBackName', vcBack.name);
+    }
 
     // Send data to Google Apps Script
     fetch(SCRIPT_URL, { method: 'POST', body: formData })
@@ -127,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
           popup.classList.remove('error');
           popup.style.display = "block";
           form.reset();
-          document.querySelectorAll('.tick').forEach(t => t.style.display = 'none');
+          document.querySelectorAll('.tick').forEach(t => t.style.transform = 'translateY(-50%) scale(0)');
         } else {
           popup.textContent = "Form submission failed!";
           popup.classList.add('error');
@@ -135,7 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => { popup.style.display = "none"; }, 3000);
-      }).catch(err => {
+      })
+      .catch(err => {
         submitBtn.classList.remove('loading');
         const popup = document.getElementById('formPopup');
         popup.textContent = "Submission error!";
@@ -145,5 +143,5 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
       });
   });
-});
 
+});
