@@ -1,335 +1,231 @@
-/* ===== Base Reset ===== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('customerForm');
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
 
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f9f9f9;
-  color: #222;
-  line-height: 1.5;
-}
+  const offlineBanner = document.getElementById('offlineBanner');
+  const connectionStatus = document.getElementById('connectionStatus');
+  const queueList = document.getElementById('queueItems');
 
-h1, h2, h3, h4 {
-  margin: 0 0 0.5em;
-}
+  /* =======================
+     Validation: Name & Phone
+     ======================= */
+  const nameField = document.getElementById('name');
+  const phoneField = document.getElementById('phone');
 
-a {
-  color: #007bff;
-  text-decoration: none;
-}
+  nameField.addEventListener('input', () => {
+    // allow only alphabets & spaces
+    nameField.value = nameField.value.replace(/[^a-zA-Z\s]/g, '');
+  });
 
-a:hover {
-  text-decoration: underline;
-}
+  phoneField.addEventListener('input', () => {
+    // allow only + and numbers
+    phoneField.value = phoneField.value.replace(/[^0-9+]/g, '');
+  });
 
-/* ===== Header ===== */
-.site-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #007bff;
-  color: #fff;
-  padding: 0.75em 1em;
-  font-size: 0.9rem;
-}
+  /* =======================
+     Glow Success Logic
+     ======================= */
+  form.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('input', () => {
+      let isValid = false;
 
-.site-header .header-right {
-  display: flex;
-  align-items: center;
-}
+      if (input.type === "text" || input.type === "email" || input.type === "tel") {
+        isValid = input.value.trim() !== "";
+      }
+      if (input.tagName.toLowerCase() === "select") {
+        isValid = input.value !== "";
+      }
+      if (input.type === "file") {
+        isValid = input.files.length > 0;
+      }
 
-#connectionStatus {
-  font-size: 1.2rem;
-  line-height: 1;
-  margin-right: 8px;
-  color: limegreen;
-}
+      input.classList.toggle("glow-success", isValid);
+    });
+  });
 
-#connectionStatus.offline {
-  color: red;
-}
+  /* =======================
+     Drag & Drop Uploads
+     ======================= */
+  function setupFileDrop(inputId, dropId, previewId, removeId, progressId) {
+    const input = document.getElementById(inputId);
+    const drop = document.getElementById(dropId);
+    const preview = document.getElementById(previewId);
+    const removeBtn = document.getElementById(removeId);
+    const progressBar = document.getElementById(progressId);
 
-/* ===== Offline Banner ===== */
-.offline-banner {
-  background: #ffebcc;
-  color: #333;
-  text-align: center;
-  padding: 0.5em;
-  font-size: 0.85rem;
-  border-bottom: 1px solid #e0c080;
-}
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        removeBtn.style.display = "inline-block";
+        progressBar.style.width = "100%";
+        input.classList.add("glow-success");
+      };
+      reader.readAsDataURL(file);
+    }
 
-/* ===== Form Layout ===== */
-.form-container {
-  max-width: 600px;
-  margin: 1.5em auto;
-  padding: 1.5em;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+    input.addEventListener('change', () => handleFile(input.files[0]));
 
-.input-container {
-  position: relative;
-  margin-bottom: 1.25em;
-}
+    drop.addEventListener('dragover', e => {
+      e.preventDefault();
+      drop.classList.add('dragover');
+    });
 
-.input-container input,
-.input-container select {
-  width: 100%;
-  padding: 0.8em 0.6em;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  background: #fff;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
 
-.input-container label {
-  position: absolute;
-  top: -0.65em;
-  left: 0.75em;
-  background: #fff;
-  padding: 0 0.25em;
-  font-size: 0.75rem;
-  color: #555;
-}
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      drop.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        input.files = e.dataTransfer.files;
+        handleFile(input.files[0]);
+      }
+    });
 
-input:focus,
-select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
-}
-
-input.glow-success,
-select.glow-success {
-  border-color: #28a745 !important;
-  box-shadow: 0 0 0 2px rgba(40,167,69,0.25) !important;
-}
-
-/* ===== File Upload ===== */
-.file-fieldset {
-  border: 1px dashed #ccc;
-  padding: 1em;
-  border-radius: 6px;
-  margin-bottom: 1.25em;
-}
-
-.file-fieldset legend {
-  padding: 0 0.5em;
-  font-size: 0.9rem;
-  font-weight: bold;
-}
-
-.file-drop {
-  position: relative;
-  border: 2px dashed #bbb;
-  border-radius: 6px;
-  text-align: center;
-  padding: 1em;
-  margin-bottom: 1em;
-  background: #fafafa;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.file-drop:hover,
-.file-drop.dragover {
-  border-color: #007bff;
-  background: #f0f8ff;
-}
-
-.file-drop input[type="file"] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.drop-instructions {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.thumb-wrap {
-  margin-top: 0.5em;
-  position: relative;
-}
-
-.thumb-wrap img {
-  max-width: 100%;
-  max-height: 120px;
-  border-radius: 6px;
-  display: block;
-  margin: 0.25em auto;
-}
-
-.remove-file {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: #dc3545;
-  border: none;
-  color: #fff;
-  padding: 0.2em 0.5em;
-  font-size: 0.75rem;
-  border-radius: 4px;
-  cursor: pointer;
-  display: none;
-}
-
-.remove-file:hover {
-  background: #c82333;
-}
-
-/* Progress bar */
-.progress {
-  margin-top: 0.25em;
-  background: #eee;
-  height: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  background: #007bff;
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s;
-}
-
-/* ===== Actions ===== */
-.form-actions {
-  display: flex;
-  align-items: center;
-  margin-top: 1em;
-}
-
-.submit-btn {
-  padding: 0.75em 1.25em;
-  font-size: 1rem;
-  background: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.submit-btn:hover {
-  background: #0069d9;
-}
-
-.submit-btn.loading {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-button.muted {
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-}
-
-button.muted:hover {
-  text-decoration: underline;
-}
-
-/* ===== Queue List ===== */
-.queue-list {
-  margin-top: 1.5em;
-  padding: 1em;
-  background: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-.queue-list ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.queue-list li {
-  padding: 0.4em 0;
-  border-bottom: 1px solid #ddd;
-  font-size: 0.9rem;
-}
-
-.queue-list li:last-child {
-  border-bottom: none;
-}
-
-/* ===== Popup Messages ===== */
-.form-popup {
-  position: fixed;
-  bottom: 1em;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.8em 1.2em;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #fff;
-  background: #28a745; /* green by default */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  animation: fadeInOut 3s ease forwards;
-  z-index: 999;
-}
-
-.form-popup.error {
-  background: #dc3545;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translate(-50%, 20px); }
-  10% { opacity: 1; transform: translate(-50%, 0); }
-  90% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, 20px); }
-}
-
-/* ===== Dark Mode ===== */
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #121212;
-    color: #eee;
+    removeBtn.addEventListener('click', () => {
+      input.value = "";
+      preview.style.display = "none";
+      preview.src = "";
+      removeBtn.style.display = "none";
+      progressBar.style.width = "0%";
+      input.classList.remove("glow-success");
+    });
   }
 
-  .form-container {
-    background: #1e1e1e;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  setupFileDrop('vcFront', 'dropFront', 'previewFront', 'removeFront', 'progressFront');
+  setupFileDrop('vcBack', 'dropBack', 'previewBack', 'removeBack', 'progressBack');
+
+  /* =======================
+     Offline Queue (IndexedDB)
+     ======================= */
+  let db;
+  const request = indexedDB.open("FormDB", 1);
+
+  request.onupgradeneeded = e => {
+    db = e.target.result;
+    if (!db.objectStoreNames.contains("queue")) {
+      db.createObjectStore("queue", { autoIncrement: true });
+    }
+  };
+
+  request.onsuccess = e => {
+    db = e.target.result;
+    processQueue();
+  };
+
+  request.onerror = e => console.error("IndexedDB error", e);
+
+  function addToQueue(data) {
+    const tx = db.transaction("queue", "readwrite");
+    tx.objectStore("queue").add(data);
+    tx.oncomplete = () => showQueue();
   }
 
-  .input-container input,
-  .input-container select {
-    background: #2c2c2c;
-    color: #eee;
-    border: 1px solid #555;
+  function showQueue() {
+    const tx = db.transaction("queue", "readonly");
+    const store = tx.objectStore("queue");
+    const req = store.getAll();
+
+    req.onsuccess = () => {
+      queueList.innerHTML = "";
+      req.result.forEach((item, i) => {
+        const li = document.createElement('li');
+        li.textContent = `#${i+1} ${item.get('name') || 'Form Data'}`;
+        queueList.appendChild(li);
+      });
+    };
   }
 
-  .input-container label {
-    background: #1e1e1e;
-    color: #aaa;
+  function processQueue() {
+    if (!navigator.onLine) return;
+
+    const tx = db.transaction("queue", "readwrite");
+    const store = tx.objectStore("queue");
+    const req = store.openCursor();
+
+    req.onsuccess = e => {
+      const cursor = e.target.result;
+      if (cursor) {
+        fetch(SCRIPT_URL, { method: "POST", body: cursor.value })
+          .then(res => res.text())
+          .then(msg => {
+            if (msg.includes("SUCCESS")) {
+              store.delete(cursor.key);
+              cursor.continue();
+            }
+          });
+      } else {
+        showQueue();
+      }
+    };
   }
 
-  .file-drop {
-    background: #2a2a2a;
-    border-color: #444;
+  /* =======================
+     Form Submission
+     ======================= */
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.classList.add('loading');
+
+    const formData = new FormData(form);
+
+    if (navigator.onLine) {
+      fetch(SCRIPT_URL, { method: "POST", body: formData })
+        .then(res => res.text())
+        .then(msg => {
+          submitBtn.classList.remove('loading');
+          if (msg.includes("SUCCESS")) {
+            showPopup("✅ Form submitted successfully!");
+            form.reset();
+            setTimeout(() => location.reload(), 2000);
+          } else {
+            showPopup("❌ Submission failed!", true);
+          }
+        })
+        .catch(() => {
+          submitBtn.classList.remove('loading');
+          showPopup("⚠️ Error submitting form!", true);
+        });
+    } else {
+      addToQueue(formData);
+      submitBtn.classList.remove('loading');
+      showPopup("📦 Saved offline. Will sync when online.");
+      form.reset();
+    }
+  });
+
+  /* =======================
+     Connection Status
+     ======================= */
+  function updateConnectionStatus() {
+    if (navigator.onLine) {
+      offlineBanner.style.display = "none";
+      connectionStatus.textContent = "🟢";
+      connectionStatus.classList.remove("offline");
+      processQueue();
+    } else {
+      offlineBanner.style.display = "block";
+      connectionStatus.textContent = "🔴";
+      connectionStatus.classList.add("offline");
+    }
   }
 
-  .drop-instructions {
-    color: #aaa;
-  }
+  window.addEventListener('online', updateConnectionStatus);
+  window.addEventListener('offline', updateConnectionStatus);
+  updateConnectionStatus();
 
-  .queue-list {
-    background: #1e1e1e;
-    border-color: #444;
+  /* =======================
+     Popup Messages
+     ======================= */
+  function showPopup(msg, error = false) {
+    const popup = document.createElement("div");
+    popup.className = "form-popup";
+    if (error) popup.classList.add("error");
+    popup.textContent = msg;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 3000);
   }
-}
+});
