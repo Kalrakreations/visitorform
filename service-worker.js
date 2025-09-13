@@ -1,47 +1,59 @@
-const CACHE_NAME = 'visitor-form-cache-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/form-style.css',
-  '/form-script.js',
-  // Add any other assets like images/icons you want offline
-  '/icons/icon192.png',
-  '/icons/icon512.png'
+const CACHE_NAME = "form-app-cache-v1";
+const OFFLINE_URL = "/offline.html";
+
+// List of files to cache
+const urlsToCache = [
+  "/",
+  "/index.html",
+  "/style.css",
+  "/form-script.js",
+  OFFLINE_URL
 ];
 
-// Install event: cache all assets
-self.addEventListener('install', event => {
+// Install event – cache files
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS_TO_CACHE))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
 });
 
-// Activate event: clean old caches
-self.addEventListener('activate', event => {
+// Activate event – clean old caches
+self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME)
-            .map(key => caches.delete(key))
-      )
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Fetch event: serve from cache first
-self.addEventListener('fetch', event => {
+// Fetch event – serve cache first, then network
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
+
   event.respondWith(
-    caches.match(event.request).then(cachedResp => {
-      if (cachedResp) return cachedResp;
-      return fetch(event.request).catch(() => {
-        // Optional: fallback page if offline and resource not cached
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
-    })
+    fetch(event.request)
+      .then(response => {
+        // Update cache with fresh copy
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then(res => res || caches.match(OFFLINE_URL))
+      )
   );
 });
+
+// Background sync for queued submissions
+self.addEventListener("sync", event => {
+  if (event.tag === "sync-forms") {
+    event.waitUntil(syncForms());
+  }
+});
+
+// Dummy sync function (your form-script.js handles actual IndexedDB queue)
+async function syncForms() {
+  console.log("🔄 Background sync triggered!");
+}
