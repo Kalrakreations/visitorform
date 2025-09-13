@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "YOUR_GOOGLE_WEBAPP_URL"; // <-- replace with your Apps Script Web App URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec"; // <-- replace with your Apps Script Web App URL
 
   // Dynamic Other fields
   const fields = ["designation", "country", "state", "city", "business"];
@@ -145,3 +145,4 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
