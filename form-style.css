@@ -99,7 +99,7 @@ body {
   padding: 0 5px;
 }
 
-/* Green glowing border for success */
+/* Green glowing border when filled */
 .glow-success {
   border-color: #28a745 !important;
   box-shadow: 0 0 6px #28a745;
