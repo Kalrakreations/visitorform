@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
 
+  // Dynamic "Other" fields
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
     designation: document.getElementById('designationOther'),
@@ -11,19 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
-  // Glow effect
+  // Green glow logic for filled inputs
   form.querySelectorAll('input, select').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
 
-      // Name validation
-      if(input.id === "name"){
-        input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+      // Name validation: only letters
+      if(input.id === 'name') {
+        input.value = input.value.replace(/[^a-zA-Z\s]/g,'');
       }
 
-      // Phone validation
-      if(input.id === "phone"){
-        input.value = input.value.replace(/[^\d+]/g, '');
+      // Phone validation: only numbers and +
+      if(input.id === 'phone') {
+        input.value = input.value.replace(/[^0-9+]/g,'');
       }
 
       if (["text","email","tel"].includes(input.type)) {
@@ -76,15 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  function populateStates(){
+  function populateStates() {
     state.innerHTML = '<option value="">Select State</option>';
-    for(let st in statesAndCities){
+    for (let st in statesAndCities) {
       state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
     }
     state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
   }
 
-  // Show/hide Other fields
+  // Show/hide "Other" fields
   fields.forEach(f => {
     document.getElementById(f).addEventListener('change', () => {
       otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
@@ -93,25 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Country logic
   country.addEventListener('change', () => {
-    if(country.value === "India"){
+    if(country.value === "India") {
       otherFields.country.style.display = "none";
       state.style.display = "block";
       otherFields.state.style.display = "none";
       otherFields.city.style.display = "none";
       populateStates();
       city.innerHTML = '<option value="">Select City</option>';
-    } else if(country.value === "Other"){
+    } else if(country.value === "Other") {
       otherFields.country.style.display = "block";
       state.style.display = "none";
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
-    } else {
-      otherFields.country.style.display = "none";
-      state.style.display = "none";
-      city.innerHTML = '<option value="">Select City</option>';
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
     }
   });
 
@@ -120,11 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
     if(statesAndCities[state.value]){
-      statesAndCities[state.value].forEach(ct => {
+      statesAndCities[state.value].forEach(ct=>{
         city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
       });
       city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    } else if(state.value === "Other"){
+    } else if(state.value === "Other") {
       otherFields.state.style.display = "block";
       city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
@@ -132,17 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
+    otherFields.city.style.display = (city.value==="Other")?"block":"none";
   });
 
-  // Convert image to Base64
+  // Convert images to Base64
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
-      if(input.files.length === 0){ resolve(null); return; }
+      if(input.files.length===0){resolve(null);return;}
       const file = input.files[0];
       const reader = new FileReader();
-      reader.onload = ()=> resolve({base64:reader.result.split(',')[1], name:file.name});
-      reader.onerror = err => reject(err);
+      reader.onload = ()=>resolve({base64:reader.result.split(',')[1], name:file.name});
+      reader.onerror = err=>reject(err);
       reader.readAsDataURL(file);
     });
   }
@@ -160,36 +155,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    fetch(SCRIPT_URL, {method:'POST', body: formData})
-    .then(res=>res.text())
-    .then(msg=>{
-      submitBtn.classList.remove('loading');
-      const popup = document.getElementById('formPopup');
-      if(msg.includes("SUCCESS")){
-        popup.textContent = "✅ Form submitted successfully!";
-        popup.classList.remove('error');
-        popup.style.display = "block";
-        form.reset();
-        form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
-        setTimeout(()=>{popup.style.display='none'; location.reload();}, 2000); // Auto-refresh
-      } else {
-        popup.textContent = "❌ Form submission failed!";
+    fetch(SCRIPT_URL,{method:'POST',body:formData})
+      .then(res=>res.text())
+      .then(msg=>{
+        submitBtn.classList.remove('loading');
+        const popup = document.getElementById('formPopup');
+        if(msg.includes("SUCCESS")){
+          popup.textContent = "✅ Form submitted successfully!";
+          popup.classList.remove('error');
+          popup.style.display = "block";
+          setTimeout(()=>location.reload(), 2000); // Auto refresh after 2 seconds
+        } else {
+          popup.textContent = "❌ Form submission failed!";
+          popup.classList.add('error');
+          popup.style.display = "block";
+        }
+        setTimeout(()=>{popup.style.display='none';},3000);
+      })
+      .catch(err=>{
+        submitBtn.classList.remove('loading');
+        const popup = document.getElementById('formPopup');
+        popup.textContent = "⚠️ Submission error!";
         popup.classList.add('error');
         popup.style.display = "block";
-        setTimeout(()=>{popup.style.display='none';}, 3000);
-      }
-    })
-    .catch(err=>{
-      submitBtn.classList.remove('loading');
-      const popup = document.getElementById('formPopup');
-      popup.textContent = "⚠️ Submission error!";
-      popup.classList.add('error');
-      popup.style.display = "block";
-      setTimeout(()=>{popup.style.display='none';}, 3000);
-      console.error(err);
-    });
+        setTimeout(()=>{popup.style.display='none';},3000);
+        console.error(err);
+      });
   });
 
-  // Trigger glow on load
-  form.querySelectorAll('input, select').forEach(input=> input.dispatchEvent(new Event('input')));
+  // Trigger glow on load if pre-filled
+  form.querySelectorAll('input, select').forEach(input=>{
+    input.dispatchEvent(new Event('input'));
+  });
+
 });
