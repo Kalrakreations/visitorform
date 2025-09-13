@@ -4,22 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Visitor Form - Sahil Kalra</title>
-
-<!-- Main CSS -->
 <link rel="stylesheet" href="form-style.css">
 
-<!-- Web Manifest for PWA / Android -->
+<!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007bff">
 
-<!-- iOS icons -->
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180.png">
-<link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152.png">
-<link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120.png">
-<link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76.png">
-
-<!-- iOS Meta -->
+<!-- iOS Support -->
+<link rel="apple-touch-icon" href="icons/icon192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Visitor Form">
 
 </head>
@@ -28,7 +22,8 @@
 <header class="site-header">
   <div class="header-left">
     <p>
-      <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" style="text-decoration:none; color:inherit; font-weight:600;">
+      <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" 
+         style="text-decoration:none; color:inherit; font-weight:600;">
         Sahil Kalra
       </a> | +91 9646290118
     </p>
@@ -138,6 +133,17 @@
 </main>
 
 <div id="formPopup" class="form-popup">Form submitted successfully!</div>
+
+<!-- Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+    .then(reg => console.log('Service Worker registered', reg))
+    .catch(err => console.log('Service Worker registration failed', err));
+  });
+}
+</script>
 
 <script src="form-script.js"></script>
 </body>
