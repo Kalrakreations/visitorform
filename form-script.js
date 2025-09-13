@@ -2,178 +2,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
 
-  // IndexedDB setup
+  // Initialize IndexedDB for offline storage
   let db;
   const request = indexedDB.open('visitorFormDB', 1);
 
   request.onupgradeneeded = e => {
     db = e.target.result;
-    if (!db.objectStoreNames.contains('forms')) {
-      db.createObjectStore('forms', { autoIncrement: true });
+    if (!db.objectStoreNames.contains('submissions')) {
+      db.createObjectStore('submissions', { keyPath: 'id', autoIncrement: true });
     }
   };
+  request.onsuccess = e => { db = e.target.result; };
+  request.onerror = e => { console.error('IndexedDB error:', e); };
 
-  request.onsuccess = e => {
-    db = e.target.result;
-    // Try sending stored forms on load
-    sendStoredForms();
+  // Utility: save to IndexedDB
+  const saveOffline = async data => {
+    const tx = db.transaction('submissions', 'readwrite');
+    tx.objectStore('submissions').add(data);
   };
 
-  request.onerror = e => console.error("IndexedDB error:", e);
+  // Utility: sync offline submissions
+  const syncOfflineSubmissions = async () => {
+    const tx = db.transaction('submissions', 'readonly');
+    const store = tx.objectStore('submissions');
+    const all = store.getAll();
 
-  // Dynamic "Other" fields
-  const fields = ["designation","country","state","city","business"];
-  const otherFields = {
-    designation: document.getElementById('designationOther'),
-    country: document.getElementById('countryOther'),
-    state: document.getElementById('stateOther'),
-    city: document.getElementById('cityOther'),
-    business: document.getElementById('businessOther')
-  };
-
-  // Border glow logic
-  form.querySelectorAll('input, select').forEach(input => {
-    input.addEventListener('input', () => {
-      let isFilled = false;
-      if (["text","email","tel"].includes(input.type)) isFilled = input.value.trim() !== "";
-      if (input.tagName.toLowerCase() === "select") isFilled = input.value !== "";
-      if (input.type === "file") isFilled = input.files.length > 0;
-      input.classList.toggle("glow-success", isFilled);
-    });
-  });
-
-  // States & Cities
-  const statesAndCities = {
-    "Andhra Pradesh":["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
-    "Arunachal Pradesh":["Itanagar","Naharlagun","Pasighat"],
-    "Assam":["Guwahati","Dibrugarh","Silchar","Jorhat"],
-    "Bihar":["Patna","Gaya","Bhagalpur","Muzaffarpur"],
-    "Chhattisgarh":["Raipur","Bilaspur","Durg","Korba"],
-    "Goa":["Panaji","Margao","Vasco da Gama"],
-    "Gujarat":["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
-    "Haryana":["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
-    "Himachal Pradesh":["Shimla","Dharamshala","Mandi","Solan"],
-    "Jharkhand":["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
-    "Karnataka":["Bengaluru","Mysuru","Hubballi","Mangaluru"],
-    "Kerala":["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
-    "Madhya Pradesh":["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
-    "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-    "Manipur":["Imphal","Thoubal","Bishnupur"],
-    "Meghalaya":["Shillong","Tura","Nongpoh"],
-    "Mizoram":["Aizawl","Lunglei","Champhai"],
-    "Nagaland":["Kohima","Dimapur","Mokokchung"],
-    "Odisha":["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
-    "Punjab":["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
-    "Rajasthan":["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
-    "Sikkim":["Gangtok","Geyzing","Namchi"],
-    "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
-    "Telangana":["Hyderabad","Warangal","Nizamabad"],
-    "Tripura":["Agartala","Udaipur","Dharmanagar"],
-    "Uttar Pradesh":["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
-    "Uttarakhand":["Dehradun","Haridwar","Roorkee"],
-    "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
-  };
-
-  const country = document.getElementById('country');
-  const state = document.getElementById('state');
-  const city = document.getElementById('city');
-
-  function populateStates() {
-    state.innerHTML = '<option value="">Select State</option>';
-    Object.keys(statesAndCities).forEach(st => {
-      state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
-    });
-    state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-  }
-
-  // Show/hide "Other" fields
-  fields.forEach(f => {
-    document.getElementById(f).addEventListener('change', () => {
-      otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
-    });
-  });
-
-  // Country logic
-  country.addEventListener('change', () => {
-    if (country.value === "India") {
-      otherFields.country.style.display = "none";
-      state.style.display = "block";
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
-      populateStates();
-      city.innerHTML = '<option value="">Select City</option>';
-    } else if (country.value === "Other") {
-      otherFields.country.style.display = "block";
-      state.style.display = "none";
-      otherFields.state.style.display = "block";
-      city.innerHTML = '<option value="Other">Other</option>';
-      otherFields.city.style.display = "block";
-    }
-  });
-
-  // Populate cities
-  state.addEventListener('change', () => {
-    city.innerHTML = '<option value="">Select City</option>';
-    otherFields.city.style.display = "none";
-    if (statesAndCities[state.value]) {
-      statesAndCities[state.value].forEach(ct => {
-        city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
-      });
-      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    } else if (state.value === "Other") {
-      otherFields.state.style.display = "block";
-      city.innerHTML = '<option value="Other">Other</option>';
-      otherFields.city.style.display = "block";
-    }
-  });
-
-  city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
-  });
-
-  // Convert images to Base64
-  async function getImageBase64(input){
-    return new Promise((resolve, reject) => {
-      if(input.files.length === 0){ resolve(null); return; }
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => resolve({ base64: reader.result.split(',')[1], name: file.name });
-      reader.onerror = err => reject(err);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Save form to IndexedDB
-  function saveFormOffline(data) {
-    const tx = db.transaction('forms', 'readwrite');
-    tx.objectStore('forms').add(data);
-    tx.oncomplete = () => console.log('Form saved offline.');
-    tx.onerror = e => console.error('Error saving offline:', e);
-  }
-
-  // Send stored forms
-  function sendStoredForms() {
-    if (!navigator.onLine) return;
-    const tx = db.transaction('forms', 'readonly');
-    const store = tx.objectStore('forms');
-    const req = store.openCursor();
-    req.onsuccess = e => {
-      const cursor = e.target.result;
-      if(cursor) {
-        fetch(SCRIPT_URL, { method:'POST', body: cursor.value })
-          .then(res => res.text())
-          .then(msg => {
-            if(msg.includes("SUCCESS")) {
-              const deleteTx = db.transaction('forms', 'readwrite');
-              deleteTx.objectStore('forms').delete(cursor.key);
-              console.log('Offline form synced.');
-            }
-          })
-          .catch(err => console.error('Error syncing offline form:', err));
-        cursor.continue();
+    all.onsuccess = async () => {
+      const submissions = all.result;
+      for (let s of submissions) {
+        try {
+          const formData = new FormData();
+          for (let key in s) {
+            if (key !== 'id') formData.append(key, s[key]);
+          }
+          const res = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+          if ((await res.text()).includes('SUCCESS')) {
+            const delTx = db.transaction('submissions', 'readwrite');
+            delTx.objectStore('submissions').delete(s.id);
+          }
+        } catch (err) {
+          console.error('Sync failed:', err);
+        }
       }
     };
-  }
+  };
+
+  // Auto-sync whenever online
+  window.addEventListener('online', () => {
+    console.log('Back online, syncing...');
+    syncOfflineSubmissions();
+  });
 
   // Form submission
   form.addEventListener('submit', async e => {
@@ -181,52 +59,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.classList.add('loading');
 
-    const vcFront = await getImageBase64(document.getElementById('vcFront'));
-    const vcBack = await getImageBase64(document.getElementById('vcBack'));
-
     const formData = new FormData(form);
-    if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
-    if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    function showPopup(message, success=true){
+    // Convert file inputs to Base64
+    const fileToBase64 = async input => {
+      if (!input.files.length) return null;
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(input.files[0]);
+      });
+    };
+
+    const vcFront = await fileToBase64(document.getElementById('vcFront'));
+    const vcBack = await fileToBase64(document.getElementById('vcBack'));
+    if (vcFront) { formData.append('vcFrontBase64', vcFront); formData.append('vcFrontName', document.getElementById('vcFront').files[0].name); }
+    if (vcBack) { formData.append('vcBackBase64', vcBack); formData.append('vcBackName', document.getElementById('vcBack').files[0].name); }
+
+    const popup = document.getElementById('formPopup');
+
+    // If offline, save locally
+    if (!navigator.onLine) {
+      const obj = {};
+      formData.forEach((value, key) => { obj[key] = value; });
+      await saveOffline(obj);
       submitBtn.classList.remove('loading');
-      const popup = document.getElementById('formPopup');
-      popup.textContent = message;
-      popup.classList.toggle('error', !success);
-      popup.style.display = "block";
-      setTimeout(()=>popup.style.display='none', 3000);
-      if(success){
-        form.reset();
-        form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
-      }
+      popup.textContent = '✅ Saved offline! Will submit when online.';
+      popup.classList.remove('error');
+      popup.style.display = 'block';
+      form.reset();
+      setTimeout(() => { popup.style.display = 'none'; }, 3000);
+      return;
     }
 
-    if(navigator.onLine){
-      fetch(SCRIPT_URL, { method:'POST', body: formData })
-        .then(res => res.text())
-        .then(msg => {
-          if(msg.includes("SUCCESS")){
-            showPopup("✅ Form submitted successfully!");
-          } else {
-            showPopup("❌ Form submission failed!", false);
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          showPopup("⚠️ Submission error!", false);
-          saveFormOffline(formData);
-        });
-    } else {
-      saveFormOffline(formData);
-      showPopup("⚠️ No internet. Form saved offline.", true);
-    }
+    // If online, submit to server
+    fetch(SCRIPT_URL, { method: 'POST', body: formData })
+      .then(res => res.text())
+      .then(msg => {
+        submitBtn.classList.remove('loading');
+        if (msg.includes('SUCCESS')) {
+          popup.textContent = '✅ Form submitted successfully!';
+          popup.classList.remove('error');
+          form.reset();
+        } else {
+          popup.textContent = '❌ Form submission failed!';
+          popup.classList.add('error');
+        }
+        popup.style.display = 'block';
+        setTimeout(() => { popup.style.display = 'none'; }, 3000);
+      })
+      .catch(err => {
+        submitBtn.classList.remove('loading');
+        popup.textContent = '⚠️ Submission error! Saved offline.';
+        popup.classList.add('error');
+        popup.style.display = 'block';
+        // save offline if failed
+        const obj = {};
+        formData.forEach((value, key) => { obj[key] = value; });
+        saveOffline(obj);
+        setTimeout(() => { popup.style.display = 'none'; }, 3000);
+        console.error(err);
+      });
   });
 
-  // Listen for online event to auto-send offline forms
-  window.addEventListener('online', sendStoredForms);
-
-  // Trigger glow on load if pre-filled
-  form.querySelectorAll('input, select').forEach(input => {
-    input.dispatchEvent(new Event('input'));
-  });
 });
