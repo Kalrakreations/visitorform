@@ -1,195 +1,224 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitor Form - Sahil Kalra</title>
+<link rel="stylesheet" href="form-style.css">
 
-  const fields = ["designation","country","state","city","business"];
-  const otherFields = {
-    designation: document.getElementById('designationOther'),
-    country: document.getElementById('countryOther'),
-    state: document.getElementById('stateOther'),
-    city: document.getElementById('cityOther'),
-    business: document.getElementById('businessOther')
-  };
+<style>
+/* ------------------ CSS ------------------ */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+}
+.site-header {
+  background-color: #343a40;
+  color: #fff;
+  padding: 10px 20px;
+}
+.site-header a {
+  color: #fff;
+  text-decoration: none;
+}
+.form-container {
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.form-container h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.input-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+input, select {
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 16px;
+}
+input:focus, select:focus {
+  border-color: #007bff;
+}
+label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  transition: 0.3s ease all;
+}
+input:not(:placeholder-shown) + label,
+select:not([value=""]) + label {
+  top: -8px;
+  left: 8px;
+  font-size: 12px;
+  background: #fff;
+  padding: 0 5px;
+  color: #007bff;
+}
+.glow-success {
+  border: 2px solid #28a745 !important;
+  box-shadow: 0 0 8px #28a745;
+}
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.submit-btn.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+.form-popup {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 25px;
+  border-radius: 5px;
+  background-color: #28a745;
+  color: #fff;
+  font-weight: bold;
+  z-index: 1000;
+}
+.form-popup.error {
+  background-color: #dc3545;
+}
+</style>
+</head>
+<body>
 
-  // Glow effect
-  form.querySelectorAll('input, select').forEach(input => {
-    input.addEventListener('input', () => {
-      let isFilled = false;
+<header class="site-header">
+  <div class="header-left">
+    <p>
+      <a href="https://www.linkedin.com/in/skalra1999/" target="_blank">
+        Sahil Kalra
+      </a> | +91 9646290118
+    </p>
+  </div>
+</header>
 
-      // Name validation
-      if(input.id === "name"){
-        input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
-      }
+<main class="form-container">
+  <h1>Visitor Form</h1>
+  <form id="customerForm" autocomplete="off">
+    <!-- Event Name -->
+    <div class="input-container">
+      <input type="text" name="eventName" placeholder=" " id="eventName">
+      <label for="eventName">Event Name</label>
+    </div>
 
-      // Phone validation
-      if(input.id === "phone"){
-        input.value = input.value.replace(/[^\d+]/g, '');
-      }
+    <!-- Name -->
+    <div class="input-container">
+      <input type="text" name="name" placeholder=" " id="name" required>
+      <label for="name">Name *</label>
+    </div>
 
-      if (["text","email","tel"].includes(input.type)) {
-        isFilled = input.value.trim() !== "";
-      }
-      if (input.tagName.toLowerCase() === "select") {
-        isFilled = input.value !== "";
-      }
-      if (input.type === "file") {
-        isFilled = input.files.length > 0;
-      }
+    <!-- Phone -->
+    <div class="input-container">
+      <input type="tel" name="phone" placeholder=" " id="phone" required>
+      <label for="phone">Phone *</label>
+    </div>
 
-      input.classList.toggle("glow-success", isFilled);
-    });
-  });
+    <!-- Email -->
+    <div class="input-container">
+      <input type="email" name="email" placeholder=" " id="email">
+      <label for="email">Email</label>
+    </div>
 
-  // States & Cities
-  const statesAndCities = {
-    "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
-    "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
-    "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat"],
-    "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur"],
-    "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
-    "Goa": ["Panaji","Margao","Vasco da Gama"],
-    "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
-    "Haryana": ["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
-    "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
-    "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
-    "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru"],
-    "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
-    "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
-    "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-    "Manipur": ["Imphal","Thoubal","Bishnupur"],
-    "Meghalaya": ["Shillong","Tura","Nongpoh"],
-    "Mizoram": ["Aizawl","Lunglei","Champhai"],
-    "Nagaland": ["Kohima","Dimapur","Mokokchung"],
-    "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
-    "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
-    "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
-    "Sikkim": ["Gangtok","Geyzing","Namchi"],
-    "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
-    "Telangana": ["Hyderabad","Warangal","Nizamabad"],
-    "Tripura": ["Agartala","Udaipur","Dharmanagar"],
-    "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
-    "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
-    "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
-  };
+    <!-- Company -->
+    <div class="input-container">
+      <input type="text" name="company" placeholder=" " id="company">
+      <label for="company">Company</label>
+    </div>
 
-  const country = document.getElementById('country');
-  const state = document.getElementById('state');
-  const city = document.getElementById('city');
+    <!-- Designation -->
+    <div class="input-container">
+      <select id="designation" name="designation">
+        <option value="">Select Designation</option>
+        <option value="Executive">Executive</option>
+        <option value="Manager">Manager</option>
+        <option value="CEO">CEO</option>
+        <option value="Founder">Founder</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="designationOther" name="designationOther" placeholder="Enter your designation" style="display:none;">
+    </div>
 
-  function populateStates(){
-    state.innerHTML = '<option value="">Select State</option>';
-    for(let st in statesAndCities){
-      state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
-    }
-    state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-  }
+    <!-- Country -->
+    <div class="input-container">
+      <select id="country" name="country">
+        <option value="India">India</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
+    </div>
 
-  // Show/hide Other fields
-  fields.forEach(f => {
-    document.getElementById(f).addEventListener('change', () => {
-      otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
-    });
-  });
+    <!-- State -->
+    <div class="input-container">
+      <select id="state" name="state">
+        <option value="">Select State</option>
+      </select>
+      <input type="text" id="stateOther" name="stateOther" placeholder="Enter state" style="display:none;">
+    </div>
 
-  // Country logic
-  country.addEventListener('change', () => {
-    if(country.value === "India"){
-      otherFields.country.style.display = "none";
-      state.style.display = "block";
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
-      populateStates();
-      city.innerHTML = '<option value="">Select City</option>';
-    } else if(country.value === "Other"){
-      otherFields.country.style.display = "block";
-      state.style.display = "none";
-      otherFields.state.style.display = "block";
-      city.innerHTML = '<option value="Other">Other</option>';
-      otherFields.city.style.display = "block";
-    } else {
-      otherFields.country.style.display = "none";
-      state.style.display = "none";
-      city.innerHTML = '<option value="">Select City</option>';
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
-    }
-  });
+    <!-- City -->
+    <div class="input-container">
+      <select id="city" name="city">
+        <option value="">Select City</option>
+      </select>
+      <input type="text" id="cityOther" name="cityOther" placeholder="Enter city" style="display:none;">
+    </div>
 
-  // Populate cities
-  state.addEventListener('change', () => {
-    city.innerHTML = '<option value="">Select City</option>';
-    otherFields.city.style.display = "none";
-    if(statesAndCities[state.value]){
-      statesAndCities[state.value].forEach(ct => {
-        city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
-      });
-      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    } else if(state.value === "Other"){
-      otherFields.state.style.display = "block";
-      city.innerHTML = '<option value="Other">Other</option>';
-      otherFields.city.style.display = "block";
-    }
-  });
+    <!-- Business Type -->
+    <div class="input-container">
+      <select id="business" name="business">
+        <option value="">Select Business</option>
+        <option value="Employee">Employee</option>
+        <option value="Trader">Trader</option>
+        <option value="Exporter">Exporter</option>
+        <option value="E-commerce">E-commerce</option>
+        <option value="Certification Services">Certification Services</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
+    </div>
 
-  city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
-  });
+    <!-- Visiting Card Front -->
+    <div class="input-container">
+      <input type="file" name="vcFront" id="vcFront" accept="image/*">
+      <label for="vcFront">Visiting Card (Front)</label>
+    </div>
 
-  // Convert image to Base64
-  async function getImageBase64(input){
-    return new Promise((resolve,reject)=>{
-      if(input.files.length === 0){ resolve(null); return; }
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = ()=> resolve({base64:reader.result.split(',')[1], name:file.name});
-      reader.onerror = err => reject(err);
-      reader.readAsDataURL(file);
-    });
-  }
+    <!-- Visiting Card Back -->
+    <div class="input-container">
+      <input type="file" name="vcBack" id="vcBack" accept="image/*">
+      <label for="vcBack">Visiting Card (Back)</label>
+    </div>
 
-  // Form submission
-  form.addEventListener('submit', async e=>{
-    e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.classList.add('loading');
+    <button type="submit" class="submit-btn">Submit</button>
+  </form>
+</main>
 
-    const vcFront = await getImageBase64(document.getElementById('vcFront'));
-    const vcBack = await getImageBase64(document.getElementById('vcBack'));
+<div id="formPopup" class="form-popup">Form submitted successfully!</div>
 
-    const formData = new FormData(form);
-    if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
-    if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
-
-    fetch(SCRIPT_URL, {method:'POST', body: formData})
-    .then(res=>res.text())
-    .then(msg=>{
-      submitBtn.classList.remove('loading');
-      const popup = document.getElementById('formPopup');
-      if(msg.includes("SUCCESS")){
-        popup.textContent = "✅ Form submitted successfully!";
-        popup.classList.remove('error');
-        popup.style.display = "block";
-        form.reset();
-        form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
-        setTimeout(()=>{popup.style.display='none'; location.reload();}, 2000); // Auto-refresh
-      } else {
-        popup.textContent = "❌ Form submission failed!";
-        popup.classList.add('error');
-        popup.style.display = "block";
-        setTimeout(()=>{popup.style.display='none';}, 3000);
-      }
-    })
-    .catch(err=>{
-      submitBtn.classList.remove('loading');
-      const popup = document.getElementById('formPopup');
-      popup.textContent = "⚠️ Submission error!";
-      popup.classList.add('error');
-      popup.style.display = "block";
-      setTimeout(()=>{popup.style.display='none';}, 3000);
-      console.error(err);
-    });
-  });
-
-  // Trigger glow on load
-  form.querySelectorAll('input, select').forEach(input=> input.dispatchEvent(new Event('input')));
-});
+<script src="form-script.js"></script>
+</body>
+</html>
