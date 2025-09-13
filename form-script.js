@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1bMAEBW9EkAxnHTqnSnTTLlbBMP3DsFxbkTcQjZlzs90BLpSRboZxWBhhLRJ080qi/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZDIFUA8QZ01dptKXHil5SP1EtKC0gd-HGNXxkX5RMiR7JM_qXe92CN_ubHv5zQ2HDdA/exec";
 
   // Inputs for dynamic "Other"
   const fields = ["designation", "country", "state", "city", "business"];
@@ -153,4 +153,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
 
