@@ -1,10 +1,12 @@
 {
   "name": "VBook",
-  "short_name": "VBSK",
-  "start_url": ".",
+  "short_name": "VBook",
+  "description": "Submit your visitor information easily.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#28a745",
+  "background_color": "#007bff",
+  "theme_color": "#007bff",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icons/icon192.png",
