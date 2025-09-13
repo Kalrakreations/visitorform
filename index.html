@@ -1,226 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Visitor Form — Sahil Kalra</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Form</title>
 
-  <!-- main stylesheet (we'll update next) -->
+  <!-- PWA manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- iOS PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Visitor Form">
+
+  <!-- iOS App Icons -->
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+
+  <!-- iOS Splash Screens -->
+  <link rel="apple-touch-startup-image" href="/splash/launch-640x1136.png" media="(device-width: 320px)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-750x1334.png" media="(device-width: 375px)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-1242x2208.png" media="(device-width: 414px)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-1125x2436.png" media="(device-width: 375px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-828x1792.png" media="(device-width: 414px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-1242x2688.png" media="(device-width: 414px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-1536x2048.png" media="(min-device-width: 768px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-1668x2224.png" media="(min-device-width: 834px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="/splash/launch-2048x2732.png" media="(min-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2)">
+
+  <!-- Fallback favicon -->
+  <link rel="icon" href="/icons/favicon.ico" type="image/x-icon">
+
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#1a73e8">
+  <meta name="background-color" content="#ffffff">
+
+  <!-- Styles -->
   <link rel="stylesheet" href="/form-style.css">
 
-  <!-- PWA / Home-screen icons & manifest -->
-  <link rel="icon" href="/icons/icon192.png">
-  <link rel="apple-touch-icon" href="/icons/icon192.png">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#007bff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <!-- small inline note: fonts should be loaded in CSS (system fonts recommended for speed) -->
-</head>
-<body>
-
-  <!-- HEADER -->
-  <header class="site-header" role="banner">
-    <div class="header-left">
-      <p>
-        <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" rel="noopener noreferrer">
-          Sahil Kalra
-        </a>
-        &nbsp;|&nbsp; +91 9646290118
-      </p>
-    </div>
-
-    <!-- connection + queue indicators: JS will update these -->
-    <div class="header-right" aria-hidden="true">
-      <span id="connectionStatus" title="Online / Offline status">●</span>
-      <span id="queueCount" title="Queued submissions" aria-live="polite" style="margin-left:10px;">0</span>
-    </div>
-  </header>
-
-  <!-- OFFLINE BANNER (hidden by default; JS will toggle) -->
-  <div id="offlineBanner" class="offline-banner" role="status" aria-live="polite" style="display:none;">
-    You are offline — submissions will be saved locally and automatically synced when online.
-  </div>
-
-  <!-- MAIN FORM -->
-  <main class="form-container" role="main">
-    <h1>Visitor Form</h1>
-
-    <!-- quick help area (for drag-drop instructions, camera etc) -->
-    <p class="muted small">Use camera or upload visiting card. Form works offline and syncs automatically.</p>
-
-    <form id="customerForm" autocomplete="off" novalidate>
-
-      <!-- Event -->
-      <div class="input-container">
-        <input id="eventName" name="eventName" type="text" placeholder=" " />
-        <label for="eventName">Event Name</label>
-      </div>
-
-      <!-- Name (letters + spaces only) -->
-      <div class="input-container">
-        <input id="name" name="name" type="text" placeholder=" " required
-               inputmode="text" autocomplete="name"
-               aria-required="true"
-               title="Only letters and spaces allowed" />
-        <label for="name">Name *</label>
-      </div>
-
-      <!-- Phone (only + and numbers permitted) -->
-      <div class="input-container">
-        <input id="phone" name="phone" type="tel" placeholder=" " required
-               inputmode="tel" autocomplete="tel"
-               pattern="^\+?\d{7,15}$"
-               title="Enter phone number (only + and digits). Example: +919876543210" />
-        <label for="phone">Phone *</label>
-      </div>
-
-      <!-- Email -->
-      <div class="input-container">
-        <input id="email" name="email" type="email" placeholder=" " inputmode="email" autocomplete="email" />
-        <label for="email">Email</label>
-      </div>
-
-      <!-- Company -->
-      <div class="input-container">
-        <input id="company" name="company" type="text" placeholder=" " />
-        <label for="company">Company</label>
-      </div>
-
-      <!-- Designation (select + other) -->
-      <div class="input-container">
-        <select id="designation" name="designation" aria-label="Designation">
-          <option value="">Select Designation</option>
-          <option>Executive</option>
-          <option>Manager</option>
-          <option>CEO</option>
-          <option>Founder</option>
-          <option>Other</option>
-        </select>
-        <input id="designationOther" name="designationOther" type="text" placeholder="Enter your designation" style="display:none;" />
-        <label for="designation">Designation</label>
-      </div>
-
-      <!-- Country (India default) -->
-      <div class="input-container">
-        <select id="country" name="country" aria-label="Country">
-          <option value="India" selected>India</option>
-          <option value="Other">Other</option>
-        </select>
-        <input id="countryOther" name="countryOther" type="text" placeholder="Enter country" style="display:none;" />
-        <label for="country">Country</label>
-      </div>
-
-      <!-- State (populated by JS) -->
-      <div class="input-container">
-        <select id="state" name="state" aria-label="State">
-          <option value="">Select State</option>
-        </select>
-        <input id="stateOther" name="stateOther" type="text" placeholder="Enter state" style="display:none;" />
-        <label for="state">State</label>
-      </div>
-
-      <!-- City (populated by JS) -->
-      <div class="input-container">
-        <select id="city" name="city" aria-label="City">
-          <option value="">Select City</option>
-        </select>
-        <input id="cityOther" name="cityOther" type="text" placeholder="Enter city" style="display:none;" />
-        <label for="city">City</label>
-      </div>
-
-      <!-- Business -->
-      <div class="input-container">
-        <select id="business" name="business" aria-label="Business">
-          <option value="">Select Business</option>
-          <option>Employee</option>
-          <option>Trader</option>
-          <option>Exporter</option>
-          <option>E-commerce</option>
-          <option>Certification Services</option>
-          <option>Other</option>
-        </select>
-        <input id="businessOther" name="businessOther" type="text" placeholder="Enter business type" style="display:none;" />
-        <label for="business">Business Type</label>
-      </div>
-
-      <!-- Visiting card uploads - drag & drop + camera capture + preview + progress -->
-      <fieldset class="file-fieldset" aria-labelledby="vcLegend">
-        <legend id="vcLegend">Visiting Card (Front & Back)</legend>
-
-        <!-- FRONT -->
-        <div class="file-drop" data-target="vcFront" id="vcFrontDrop" tabindex="0">
-          <input id="vcFront" name="vcFront" type="file" accept="image/*" capture="environment" />
-          <div class="drop-instructions">Drop or tap to upload front (camera on mobile)</div>
-          <div class="thumb-wrap">
-            <img id="vcFrontPreview" alt="Front preview" style="display:none;" />
-            <button type="button" class="remove-file" data-remove="vcFront" style="display:none;">Remove</button>
-            <div class="progress" id="vcFrontProgress" aria-hidden="true" style="display:none;">
-              <div class="progress-bar" style="width:0%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- BACK -->
-        <div class="file-drop" data-target="vcBack" id="vcBackDrop" tabindex="0">
-          <input id="vcBack" name="vcBack" type="file" accept="image/*" capture="environment" />
-          <div class="drop-instructions">Drop or tap to upload back (camera on mobile)</div>
-          <div class="thumb-wrap">
-            <img id="vcBackPreview" alt="Back preview" style="display:none;" />
-            <button type="button" class="remove-file" data-remove="vcBack" style="display:none;">Remove</button>
-            <div class="progress" id="vcBackProgress" aria-hidden="true" style="display:none;">
-              <div class="progress-bar" style="width:0%"></div>
-            </div>
-          </div>
-        </div>
-
-      </fieldset>
-
-      <!-- Submission row -->
-      <div class="form-actions">
-        <button type="submit" class="submit-btn">Submit</button>
-        <button type="button" id="previewQueueBtn" class="muted small" style="margin-left:12px;">Queued (<span id="queueIndicator">0</span>)</button>
-      </div>
-
-    </form>
-
-    <!-- queued submissions list (JS will populate) -->
-    <section id="queueList" class="queue-list" style="display:none;">
-      <h2>Queued submissions</h2>
-      <ul id="queueItems" aria-live="polite"></ul>
-    </section>
-
-  </main>
-
-  <!-- popup for success/error messages -->
-  <div id="formPopup" class="form-popup" role="status" aria-live="polite" style="display:none;"></div>
-
-  <!-- service worker registration (registers /service-worker.js) -->
+  <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
-          .then(reg => console.log('Service Worker registered.', reg))
-          .catch(err => console.error('Service Worker registration failed:', err));
+          .then(reg => console.log('Service Worker registered ✅', reg))
+          .catch(err => console.error('Service Worker failed ❌', err));
       });
     }
   </script>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Visitor Registration Form</h2>
+    <form id="customerForm">
+      
+      <!-- Name -->
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required>
 
-  <!-- main behaviour script (we'll update next) -->
-  <script src="/form-script.js" defer></script>
+      <!-- Phone -->
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" name="phone" required>
 
-  <!-- helpful notes for developers (hidden) -->
-  <!--
-    JS hooks to implement next:
-      - toggle #offlineBanner visibility & set #connectionStatus (online/offline)
-      - populate #state and #city from statesAndCities object
-      - handle "Other" inputs display logic (designationOther, countryOther, stateOther, cityOther, businessOther)
-      - handle drag/drop & click for .file-drop elements:
-          * input change -> render preview image into #vcFrontPreview / #vcBackPreview
-          * show remove button & progress bars
-      - IndexedDB queue logic & sync when navigator.onLine
-      - update #queueIndicator and #queueItems
-  -->
+      <!-- Email -->
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email">
+
+      <!-- Country -->
+      <label for="country">Country</label>
+      <select id="country" name="country" required>
+        <option value="">Select Country</option>
+        <option value="India">India</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="countryOther" name="countryOther" placeholder="Enter Country" style="display:none;">
+
+      <!-- State -->
+      <label for="state">State</label>
+      <select id="state" name="state" style="display:none;"></select>
+      <input type="text" id="stateOther" name="stateOther" placeholder="Enter State" style="display:none;">
+
+      <!-- City -->
+      <label for="city">City</label>
+      <select id="city" name="city"></select>
+      <input type="text" id="cityOther" name="cityOther" placeholder="Enter City" style="display:none;">
+
+      <!-- Business -->
+      <label for="business">Business</label>
+      <select id="business" name="business">
+        <option value="">Select Business</option>
+        <option value="Retail">Retail</option>
+        <option value="Wholesale">Wholesale</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="businessOther" name="businessOther" placeholder="Enter Business" style="display:none;">
+
+      <!-- Visiting Card Upload -->
+      <label for="vcFront">Upload Visiting Card (Front)</label>
+      <input type="file" id="vcFront" name="vcFront" accept="image/*">
+
+      <label for="vcBack">Upload Visiting Card (Back)</label>
+      <input type="file" id="vcBack" name="vcBack" accept="image/*">
+
+      <!-- Submit -->
+      <button type="submit">Submit</button>
+    </form>
+    <div id="formPopup" class="popup"></div>
+  </div>
+
+  <!-- JS -->
+  <script src="/form-script.js"></script>
 </body>
 </html>
