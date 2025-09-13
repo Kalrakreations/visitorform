@@ -1,125 +1,335 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvmhvHDmRY6fSGwcrld0EXBhadrCYMRbiWOA4I575ciHBYZhZnFFRlGbbbpPksLaOUbQ/exec";
+/* ===== Base Reset ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-  // Initialize IndexedDB for offline storage
-  let db;
-  const request = indexedDB.open('visitorFormDB', 1);
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f9f9f9;
+  color: #222;
+  line-height: 1.5;
+}
 
-  request.onupgradeneeded = e => {
-    db = e.target.result;
-    if (!db.objectStoreNames.contains('submissions')) {
-      db.createObjectStore('submissions', { keyPath: 'id', autoIncrement: true });
-    }
-  };
-  request.onsuccess = e => { db = e.target.result; };
-  request.onerror = e => { console.error('IndexedDB error:', e); };
+h1, h2, h3, h4 {
+  margin: 0 0 0.5em;
+}
 
-  // Utility: save to IndexedDB
-  const saveOffline = async data => {
-    const tx = db.transaction('submissions', 'readwrite');
-    tx.objectStore('submissions').add(data);
-  };
+a {
+  color: #007bff;
+  text-decoration: none;
+}
 
-  // Utility: sync offline submissions
-  const syncOfflineSubmissions = async () => {
-    const tx = db.transaction('submissions', 'readonly');
-    const store = tx.objectStore('submissions');
-    const all = store.getAll();
+a:hover {
+  text-decoration: underline;
+}
 
-    all.onsuccess = async () => {
-      const submissions = all.result;
-      for (let s of submissions) {
-        try {
-          const formData = new FormData();
-          for (let key in s) {
-            if (key !== 'id') formData.append(key, s[key]);
-          }
-          const res = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
-          if ((await res.text()).includes('SUCCESS')) {
-            const delTx = db.transaction('submissions', 'readwrite');
-            delTx.objectStore('submissions').delete(s.id);
-          }
-        } catch (err) {
-          console.error('Sync failed:', err);
-        }
-      }
-    };
-  };
+/* ===== Header ===== */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #007bff;
+  color: #fff;
+  padding: 0.75em 1em;
+  font-size: 0.9rem;
+}
 
-  // Auto-sync whenever online
-  window.addEventListener('online', () => {
-    console.log('Back online, syncing...');
-    syncOfflineSubmissions();
-  });
+.site-header .header-right {
+  display: flex;
+  align-items: center;
+}
 
-  // Form submission
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.classList.add('loading');
+#connectionStatus {
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-right: 8px;
+  color: limegreen;
+}
 
-    const formData = new FormData(form);
+#connectionStatus.offline {
+  color: red;
+}
 
-    // Convert file inputs to Base64
-    const fileToBase64 = async input => {
-      if (!input.files.length) return null;
-      return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(input.files[0]);
-      });
-    };
+/* ===== Offline Banner ===== */
+.offline-banner {
+  background: #ffebcc;
+  color: #333;
+  text-align: center;
+  padding: 0.5em;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e0c080;
+}
 
-    const vcFront = await fileToBase64(document.getElementById('vcFront'));
-    const vcBack = await fileToBase64(document.getElementById('vcBack'));
-    if (vcFront) { formData.append('vcFrontBase64', vcFront); formData.append('vcFrontName', document.getElementById('vcFront').files[0].name); }
-    if (vcBack) { formData.append('vcBackBase64', vcBack); formData.append('vcBackName', document.getElementById('vcBack').files[0].name); }
+/* ===== Form Layout ===== */
+.form-container {
+  max-width: 600px;
+  margin: 1.5em auto;
+  padding: 1.5em;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
-    const popup = document.getElementById('formPopup');
+.input-container {
+  position: relative;
+  margin-bottom: 1.25em;
+}
 
-    // If offline, save locally
-    if (!navigator.onLine) {
-      const obj = {};
-      formData.forEach((value, key) => { obj[key] = value; });
-      await saveOffline(obj);
-      submitBtn.classList.remove('loading');
-      popup.textContent = '✅ Saved offline! Will submit when online.';
-      popup.classList.remove('error');
-      popup.style.display = 'block';
-      form.reset();
-      setTimeout(() => { popup.style.display = 'none'; }, 3000);
-      return;
-    }
+.input-container input,
+.input-container select {
+  width: 100%;
+  padding: 0.8em 0.6em;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
 
-    // If online, submit to server
-    fetch(SCRIPT_URL, { method: 'POST', body: formData })
-      .then(res => res.text())
-      .then(msg => {
-        submitBtn.classList.remove('loading');
-        if (msg.includes('SUCCESS')) {
-          popup.textContent = '✅ Form submitted successfully!';
-          popup.classList.remove('error');
-          form.reset();
-        } else {
-          popup.textContent = '❌ Form submission failed!';
-          popup.classList.add('error');
-        }
-        popup.style.display = 'block';
-        setTimeout(() => { popup.style.display = 'none'; }, 3000);
-      })
-      .catch(err => {
-        submitBtn.classList.remove('loading');
-        popup.textContent = '⚠️ Submission error! Saved offline.';
-        popup.classList.add('error');
-        popup.style.display = 'block';
-        // save offline if failed
-        const obj = {};
-        formData.forEach((value, key) => { obj[key] = value; });
-        saveOffline(obj);
-        setTimeout(() => { popup.style.display = 'none'; }, 3000);
-        console.error(err);
-      });
-  });
+.input-container label {
+  position: absolute;
+  top: -0.65em;
+  left: 0.75em;
+  background: #fff;
+  padding: 0 0.25em;
+  font-size: 0.75rem;
+  color: #555;
+}
 
-});
+input:focus,
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
+}
+
+input.glow-success,
+select.glow-success {
+  border-color: #28a745 !important;
+  box-shadow: 0 0 0 2px rgba(40,167,69,0.25) !important;
+}
+
+/* ===== File Upload ===== */
+.file-fieldset {
+  border: 1px dashed #ccc;
+  padding: 1em;
+  border-radius: 6px;
+  margin-bottom: 1.25em;
+}
+
+.file-fieldset legend {
+  padding: 0 0.5em;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.file-drop {
+  position: relative;
+  border: 2px dashed #bbb;
+  border-radius: 6px;
+  text-align: center;
+  padding: 1em;
+  margin-bottom: 1em;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.file-drop:hover,
+.file-drop.dragover {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.file-drop input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.drop-instructions {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.thumb-wrap {
+  margin-top: 0.5em;
+  position: relative;
+}
+
+.thumb-wrap img {
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 6px;
+  display: block;
+  margin: 0.25em auto;
+}
+
+.remove-file {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #dc3545;
+  border: none;
+  color: #fff;
+  padding: 0.2em 0.5em;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: none;
+}
+
+.remove-file:hover {
+  background: #c82333;
+}
+
+/* Progress bar */
+.progress {
+  margin-top: 0.25em;
+  background: #eee;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: #007bff;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s;
+}
+
+/* ===== Actions ===== */
+.form-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 1em;
+}
+
+.submit-btn {
+  padding: 0.75em 1.25em;
+  font-size: 1rem;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #0069d9;
+}
+
+.submit-btn.loading {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+button.muted {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+}
+
+button.muted:hover {
+  text-decoration: underline;
+}
+
+/* ===== Queue List ===== */
+.queue-list {
+  margin-top: 1.5em;
+  padding: 1em;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.queue-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.queue-list li {
+  padding: 0.4em 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.9rem;
+}
+
+.queue-list li:last-child {
+  border-bottom: none;
+}
+
+/* ===== Popup Messages ===== */
+.form-popup {
+  position: fixed;
+  bottom: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.8em 1.2em;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #fff;
+  background: #28a745; /* green by default */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  animation: fadeInOut 3s ease forwards;
+  z-index: 999;
+}
+
+.form-popup.error {
+  background: #dc3545;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, 20px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  90% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+/* ===== Dark Mode ===== */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #121212;
+    color: #eee;
+  }
+
+  .form-container {
+    background: #1e1e1e;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  }
+
+  .input-container input,
+  .input-container select {
+    background: #2c2c2c;
+    color: #eee;
+    border: 1px solid #555;
+  }
+
+  .input-container label {
+    background: #1e1e1e;
+    color: #aaa;
+  }
+
+  .file-drop {
+    background: #2a2a2a;
+    border-color: #444;
+  }
+
+  .drop-instructions {
+    color: #aaa;
+  }
+
+  .queue-list {
+    background: #1e1e1e;
+    border-color: #444;
+  }
+}
