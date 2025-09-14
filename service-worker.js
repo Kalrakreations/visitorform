@@ -1,4 +1,9 @@
-const CACHE_NAME = 'visitor-form-cache-v2';
+importScripts('https://cdnjs.cloudflare.com/ajax/libs/idb/7.0.1/idb.min.js');
+
+const CACHE_NAME = 'visitor-form-cache-v3';
+const DB_NAME = 'visitorFormDB';
+const STORE_NAME = 'formQueue';
+
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -7,7 +12,6 @@ const URLS_TO_CACHE = [
   '/form-script.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
-  // add fonts/images if you have more assets
 ];
 
 // Install Service Worker and cache resources
@@ -48,7 +52,6 @@ self.addEventListener('fetch', (event) => {
           return cachedResponse;
         }
         return fetch(event.request).catch(() => {
-          // Fallback to offline.html if page not cached
           if (event.request.destination === 'document') {
             return caches.match('/offline.html');
           }
@@ -56,3 +59,55 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// ----------------- Background Sync -----------------
+
+// Listen for sync events
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-forms') {
+    event.waitUntil(submitForms());
+  }
+});
+
+// Helper: open IndexedDB
+async function getDb() {
+  return idb.openDB(DB_NAME, 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { autoIncrement: true });
+      }
+    }
+  });
+}
+
+// Submit queued forms
+async function submitForms() {
+  const db = await getDb();
+  const allForms = await db.getAllKeys(STORE_NAME);
+
+  for (let key of allForms) {
+    const formDataObj = await db.get(STORE_NAME, key);
+
+    try {
+      const fd = new FormData();
+      for (let k in formDataObj) {
+        fd.append(k, formDataObj[k]);
+      }
+
+      const res = await fetch("YOUR_GOOGLE_SCRIPT_URL", {
+        method: "POST",
+        body: fd
+      });
+
+      const msg = await res.text();
+
+      if (msg.includes("SUCCESS")) {
+        console.log("✅ Synced form:", key);
+        await db.delete(STORE_NAME, key);
+      }
+    } catch (err) {
+      console.error("❌ Sync failed for form:", key, err);
+      // keep in DB for retry next time
+    }
+  }
+}
