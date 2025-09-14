@@ -17,6 +17,12 @@
       </a> | +91 9646290118
     </p>
   </div>
+
+  <!-- Apple-style Dark/Light Mode Toggle -->
+  <div class="theme-toggle">
+    <input type="checkbox" id="darkModeSwitch">
+    <label for="darkModeSwitch" class="switch"></label>
+  </div>
 </header>
 
 <main class="form-container">
@@ -128,7 +134,7 @@
 <!-- Popup -->
 <div id="formPopup" class="form-popup">Form submitted successfully!</div>
 
-<!-- Script -->
+<!-- Scripts -->
 <script src="form-script.js" defer></script>
 <script>
   // Automatically capture and persist location
@@ -165,6 +171,25 @@
 
   autoCaptureLocation();
   setInterval(autoCaptureLocation, 30000); // Refresh location every 30s
+
+  // Dark/Light mode toggle
+  const toggle = document.getElementById("darkModeSwitch");
+  const root = document.documentElement;
+
+  if(localStorage.getItem("theme") === "dark"){
+    root.setAttribute("data-theme", "dark");
+    toggle.checked = true;
+  }
+
+  toggle.addEventListener("change", () => {
+    if(toggle.checked){
+      root.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      root.setAttribute("data-theme", "light");
+      localStorage.setItem("theme", "light");
+    }
+  });
 </script>
 
 </body>
