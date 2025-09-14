@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
 
-  // --- 📍 Secret Location Capture ---
+  // --- 📍 Location Capture ---
   function captureLocation() {
     const latInput = document.getElementById("latitude");
     const lonInput = document.getElementById("longitude");
@@ -237,6 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     button.classList.add(success ? "success" : "error", "bounce");
 
+    // Auto-reset color back to default after 2s
+    setTimeout(() => {
+      button.classList.remove("success", "error");
+    }, 2000);
+
     setTimeout(() => {
       ripple.remove();
       button.classList.remove("bounce");
@@ -266,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
           form.reset();
           form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
           addRippleEffect(e, submitBtn, true);
-          setTimeout(()=>location.reload(), 2000);
         } else {
           showPopup("❌ Form submission failed!", true);
           addRippleEffect(e, submitBtn, false);
