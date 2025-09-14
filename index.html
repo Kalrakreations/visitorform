@@ -5,31 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Visitor Form - Sahil Kalra</title>
 <link rel="stylesheet" href="form-style.css">
-
-<!-- Favicon & PWA icons -->
-<link rel="icon" href="/icons/icon192.png">
-<link rel="apple-touch-icon" href="/icons/icon192.png">
-<link rel="manifest" href="/manifest.json">
-
-<!-- Theme color for browser -->
-<meta name="theme-color" content="#007bff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<!-- Dark Mode Support -->
-<style>
-@media (prefers-color-scheme: dark) {
-  body { background: #121212; color: #eee; }
-  .form-container { background: #1e1e1e; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
-  .site-header { background: #1a1a1a; color: #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-  input, select { background: #2a2a2a; color: #eee; border: 1px solid #555; }
-  input:focus, select:focus { border-color: #0d6efd; box-shadow: 0 0 5px rgba(13,110,253,0.5); }
-  .submit-btn { background: #0d6efd; color: #fff; }
-  .submit-btn:hover { background: #084298; }
-  .form-popup { color: #fff; }
-}
-</style>
-
 </head>
 <body>
 
@@ -46,6 +21,7 @@
 <main class="form-container">
   <h1>Visitor Form</h1>
   <form id="customerForm" autocomplete="off">
+
     <!-- Event Name -->
     <div class="input-container">
       <input type="text" name="eventName" placeholder=" " id="eventName">
@@ -146,7 +122,6 @@
 
 <div id="formPopup" class="form-popup">Form submitted successfully!</div>
 
-<!-- JS -->
 <script src="form-script.js"></script>
 
 <!-- Service Worker Registration -->
