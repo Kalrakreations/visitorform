@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
+  // Validation fields
+  const nameInput = form.elements['name'];
+  const phoneInput = form.elements['phone'];
+
   // ---------- Static Data ----------
   const countriesData = [
     "India",
@@ -136,6 +140,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --------- Name Validation (only alphabets) ---------
+  nameInput.addEventListener('input', function() {
+    // Allow only letters and spaces
+    const valid = this.value.replace(/[^A-Za-z\s]/g, '');
+    if (this.value !== valid) {
+      this.value = valid;
+    }
+  });
+
+  // --------- Phone Validation (only numbers, +, -) ---------
+  phoneInput.addEventListener('input', function() {
+    // Allow only digits, plus, minus
+    const valid = this.value.replace(/[^0-9+\-]/g, '');
+    if (this.value !== valid) {
+      this.value = valid;
+    }
+  });
+
   // --------- Event listeners ---------
   countrySelect.addEventListener('change', () => {
     populateStates();
@@ -156,18 +178,30 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
+    // Client-side validation
+    if (!nameInput.value.match(/^[A-Za-z\s]+$/)) {
+      alert("Name can contain alphabets and spaces only.");
+      nameInput.focus();
+      return;
+    }
+    if (!phoneInput.value.match(/^[0-9+\-]+$/)) {
+      alert("Phone number can contain only numbers, + and -.");
+      phoneInput.focus();
+      return;
+    }
+
     // Collect correct values for country, state, city (handle "Others")
     const countryValue = countrySelect.value === "Others" ? otherFields.country.value : countrySelect.value;
     const stateValue = stateSelect.value === "Others" ? otherFields.state.value : stateSelect.value;
     const cityValue = citySelect.value === "Others" ? otherFields.city.value : citySelect.value;
-    const designationValue = form.elements['designation'].value === "Others" ? otherFields.designation.value : form.elements['designation'].value;
-    const businessValue = form.elements['business'].value === "Others" ? otherFields.business.value : form.elements['business'].value;
+    const designationValue = form.elements['designation']?.value === "Others" ? otherFields.designation.value : form.elements['designation']?.value;
+    const businessValue = form.elements['business']?.value === "Others" ? otherFields.business.value : form.elements['business']?.value;
 
     // Build data object - add other form fields as needed
     const data = {
-      name: form.elements['name']?.value || "",
+      name: nameInput.value || "",
       email: form.elements['email']?.value || "",
-      phone: form.elements['phone']?.value || "",
+      phone: phoneInput.value || "",
       country: countryValue,
       state: stateValue,
       city: cityValue,
@@ -184,7 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
         'Content-Type': 'application/json'
       }
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
     .then(result => {
       // Show popup or success message
       popup.style.display = 'block';
@@ -200,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     })
     .catch(error => {
-      // Handle error, show message
-      alert('Error submitting form: ' + error.message);
+      alert('Submission failed. Please check your connection and try again.\n' +
+            'If the problem persists, contact support.\nError: ' + error.message);
     });
   });
 });
