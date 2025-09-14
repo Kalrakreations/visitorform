@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visitor Form - Sahil Kalra</title>
-<link rel="stylesheet" href="form-style.css">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Form - Sahil Kalra</title>
+  <link rel="stylesheet" href="form-style.css">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -25,31 +25,31 @@
 
     <!-- Event Name -->
     <div class="input-container">
-      <input type="text" name="eventName" placeholder=" " id="eventName">
+      <input type="text" name="eventName" id="eventName" placeholder=" ">
       <label for="eventName">Event Name</label>
     </div>
 
     <!-- Name -->
     <div class="input-container">
-      <input type="text" name="name" placeholder=" " id="name" required>
+      <input type="text" name="name" id="name" placeholder=" " required>
       <label for="name">Name *</label>
     </div>
 
     <!-- Phone -->
     <div class="input-container">
-      <input type="tel" name="phone" placeholder=" " id="phone" required>
+      <input type="tel" name="phone" id="phone" placeholder=" " required>
       <label for="phone">Phone *</label>
     </div>
 
     <!-- Email -->
     <div class="input-container">
-      <input type="email" name="email" placeholder=" " id="email">
+      <input type="email" name="email" id="email" placeholder=" ">
       <label for="email">Email</label>
     </div>
 
     <!-- Company -->
     <div class="input-container">
-      <input type="text" name="company" placeholder=" " id="company">
+      <input type="text" name="company" id="company" placeholder=" ">
       <label for="company">Company</label>
     </div>
 
@@ -69,7 +69,7 @@
     <!-- Country -->
     <div class="input-container">
       <select id="country" name="country">
-        <option value="India">India</option>
+        <option value="India" selected>India</option>
         <option value="Other">Other</option>
       </select>
       <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
@@ -121,8 +121,11 @@
   </form>
 </main>
 
+<!-- Popup -->
 <div id="formPopup" class="form-popup">Form submitted successfully!</div>
 
+<!-- Script -->
 <script src="form-script.js" defer></script>
+
 </body>
 </html>
