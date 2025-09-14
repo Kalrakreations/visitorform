@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let k in record.data) fd.append(k, record.data[k]);
           await fetch(SCRIPT_URL, { method: "POST", body: fd });
           store.delete(record.id);
-
           showPopup("✅ Offline submission synced!", false);
         } catch (err) {
           console.error("Resend failed:", err);
@@ -227,10 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>{popup.style.display='none';}, 3000);
   }
 
-  // Form submission
+  // Form submission with spinner integration
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
+
+    // --- ADD LOADING SPINNER ---
     submitBtn.classList.add('loading');
 
     const vcFront = await getImageBase64(document.getElementById('vcFront'));
@@ -244,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch(SCRIPT_URL, {method:'POST', body: formData})
       .then(res=>res.text())
       .then(msg=>{
-        submitBtn.classList.remove('loading');
+        submitBtn.classList.remove('loading'); // remove spinner
         if(msg.includes("SUCCESS")){
           showPopup("✅ Form submitted successfully!", false);
           form.reset();
