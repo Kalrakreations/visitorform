@@ -117,6 +117,13 @@
       <label for="vcBack">Visiting Card (Back)</label>
     </div>
 
+    <!-- Location Capture (optional) -->
+    <div class="input-container">
+      <button type="button" id="getLocationBtn">📍 Capture Location</button>
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+    </div>
+
     <button type="submit" class="submit-btn">Submit</button>
   </form>
 </main>
@@ -126,7 +133,25 @@
 
 <!-- Script -->
 <script src="form-script.js" defer></script>
+<script>
+  document.getElementById("getLocationBtn").addEventListener("click", () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById("latitude").value = pos.coords.latitude;
+          document.getElementById("longitude").value = pos.coords.longitude;
+          alert("✅ Location captured!");
+        },
+        (err) => {
+          alert("⚠️ Location access denied or unavailable.");
+          console.error(err);
+        }
+      );
+    } else {
+      alert("❌ Geolocation not supported by this browser.");
+    }
+  });
+</script>
 
 </body>
 </html>
-
