@@ -175,25 +175,32 @@ document.addEventListener('DOMContentLoaded', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
 
-  // --- 📍 Location Capture ---
+  // --- 📍 Secret Location Capture ---
   function captureLocation() {
+    const latInput = document.getElementById("latitude");
+    const lonInput = document.getElementById("longitude");
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         pos => {
-          document.getElementById("latitude").value = pos.coords.latitude;
-          document.getElementById("longitude").value = pos.coords.longitude;
+          latInput.value = pos.coords.latitude;
+          lonInput.value = pos.coords.longitude;
           localStorage.setItem("lastLatitude", pos.coords.latitude);
           localStorage.setItem("lastLongitude", pos.coords.longitude);
         },
         err => {
-          console.warn("Location capture failed:", err.message);
-          if(localStorage.getItem("lastLatitude")){
-            document.getElementById("latitude").value = localStorage.getItem("lastLatitude");
-            document.getElementById("longitude").value = localStorage.getItem("lastLongitude");
+          if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
+            latInput.value = localStorage.getItem("lastLatitude");
+            lonInput.value = localStorage.getItem("lastLongitude");
+          } else {
+            console.warn("Location capture failed:", err.message);
           }
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
+    } else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
+      latInput.value = localStorage.getItem("lastLatitude");
+      lonInput.value = localStorage.getItem("lastLongitude");
     }
   }
   captureLocation();
@@ -271,4 +278,3 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   form.querySelectorAll('input, select').forEach(input=> input.dispatchEvent(new Event('input')));
 });
-
