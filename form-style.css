@@ -118,13 +118,11 @@ body {
   font-size:15.5px;
   pointer-events:none;
   transition: all .18s ease;
-  background: var(--form-bg); /* matches form background so it blends */
+  background: var(--form-bg);
   padding: 0 6px;
 }
 
-/* Conditions that lift the label (inputs) */
-/* 1) input focused or placeholder removed */
-/* 2) input has .glow-success (added by your JS) */
+/* Conditions that lift the label */
 .input-container input:focus + label,
 .input-container input:not(:placeholder-shown) + label,
 .input-container select:focus + label,
@@ -139,7 +137,7 @@ body {
   color: var(--primary);
 }
 
-/* Fallback: if JS adds .filled to container (optional) */
+/* Fallback: if JS adds .filled to container */
 .input-container.filled label {
   top: -9px;
   left: 12px;
@@ -184,7 +182,12 @@ button.submit-btn {
 }
 button.submit-btn:hover { transform: translateY(-2px); }
 button.submit-btn:active { transform:none; }
-button.submit-btn.loading { opacity:0.72; cursor:wait; }
+
+/* ---------- Loading spinner with fade-in/out ---------- */
+button.submit-btn.loading {
+  opacity:0.72;
+  cursor:wait;
+}
 button.submit-btn.loading::after{
   content:"";
   position:absolute;
@@ -197,6 +200,22 @@ button.submit-btn.loading::after{
   top:50%;
   transform:translate(-50%,-50%);
   animation: spin 1s linear infinite;
+  opacity:0;
+  animation-name: spin, fadeIn;
+  animation-duration: 1s, 0.3s;
+  animation-timing-function: linear, ease-in;
+  animation-iteration-count: infinite, 1;
+  animation-fill-mode: forwards;
+}
+
+/* ---------- Spinner keyframes ---------- */
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* ---------- Popup ---------- */
@@ -221,17 +240,10 @@ button.submit-btn.loading::after{
   .input-container { margin:14px 0; }
 }
 
-/* ---------- Dark-specific fine-tuning (extra safety) ---------- */
+/* ---------- Dark-specific fine-tuning ---------- */
 @media (prefers-color-scheme: dark) {
-  /* ensure header uses form-bg in dark mode */
   .site-header { background: var(--form-bg); color: var(--text); box-shadow: var(--shadow); }
-
-  /* ensure label background blends into dark card */
   .input-container label { background: var(--form-bg); color: var(--muted); }
-
-  /* ensure selects look correct */
   select { color: var(--text); background: var(--form-bg); border-color: #3a3a3a; }
-
-  /* popup more visible */
   .form-popup { color: #fff; }
 }
