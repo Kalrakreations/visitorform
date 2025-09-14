@@ -188,7 +188,7 @@ button.submit-btn.loading {
   opacity:0.72;
   cursor:wait;
 }
-button.submit-btn.loading::after{
+button.submit-btn.loading::after {
   content:"";
   position:absolute;
   width:18px;
@@ -199,13 +199,14 @@ button.submit-btn.loading::after{
   left:50%;
   top:50%;
   transform:translate(-50%,-50%);
-  animation: spin 1s linear infinite;
   opacity:0;
-  animation-name: spin, fadeIn;
-  animation-duration: 1s, 0.3s;
-  animation-timing-function: linear, ease-in;
-  animation-iteration-count: infinite, 1;
-  animation-fill-mode: forwards;
+  animation: spin 1s linear infinite, fadeIn 0.3s ease-in forwards;
+}
+
+/* When removing the loading class, fade out spinner */
+button.submit-btn::after {
+  transition: opacity 0.3s ease-out;
+  opacity:0;
 }
 
 /* ---------- Spinner keyframes ---------- */
@@ -214,8 +215,8 @@ button.submit-btn.loading::after{
   100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% { opacity:0; }
+  100% { opacity:1; }
 }
 
 /* ---------- Popup ---------- */
