@@ -1,5 +1,6 @@
 /* ===================================================
-   Modern form CSS — variables + robust dark mode
+   Modern Form CSS — variables + robust dark mode
+   Integrated with ripple, bounce & popup animations
    =================================================== */
 
 /* ---------- Theme variables (light default) ---------- */
@@ -10,6 +11,7 @@
   --muted: #999;
   --primary: #007bff;
   --success: #28a745;
+  --error: #dc3545;
   --popup-bg: #4CAF50;
   --popup-error: #ff4d4d;
   --shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -24,6 +26,7 @@
     --muted: #bfbfbf;
     --primary: #66aaff;
     --success: #4caf50;
+    --error: #b00020;
     --popup-bg: #333;
     --popup-error: #b00020;
     --shadow: 0 8px 30px rgba(0,0,0,0.6);
@@ -108,7 +111,7 @@ body {
   box-shadow: 0 0 0 4px rgba(0,123,255,0.06);
 }
 
-/* Floating label styling (labels sit after input in markup) */
+/* Floating label styling */
 .input-container label {
   position:absolute;
   left:16px;
@@ -122,22 +125,21 @@ body {
   padding: 0 6px;
 }
 
-/* Conditions that lift the label */
+/* Lifted label */
 .input-container input:focus + label,
 .input-container input:not(:placeholder-shown) + label,
 .input-container select:focus + label,
 .input-container textarea:focus + label,
 .input-container select.glow-success + label,
 .input-container input.glow-success + label,
-.input-container textarea.glow-success + label
-{
+.input-container textarea.glow-success + label {
   top: -9px;
   left: 12px;
   font-size:12.5px;
   color: var(--primary);
 }
 
-/* Fallback: if JS adds .filled to container */
+/* JS fallback */
 .input-container.filled label {
   top: -9px;
   left: 12px;
@@ -166,7 +168,7 @@ input[type="file"] {
   border-radius: 6px;
 }
 
-/* ---------- Button ---------- */
+/* ---------- Submit Button ---------- */
 button.submit-btn {
   width:100%;
   padding:14px;
@@ -178,12 +180,17 @@ button.submit-btn {
   border-radius:8px;
   cursor:pointer;
   position:relative;
+  overflow:hidden;
   transition: transform .12s ease, background .12s ease, opacity .12s;
 }
 button.submit-btn:hover { transform: translateY(-2px); }
 button.submit-btn:active { transform:none; }
 
-/* ---------- Loading spinner with fade-in/out ---------- */
+/* Success/Error button states */
+button.success { background: var(--success) !important; }
+button.error { background: var(--error) !important; }
+
+/* ---------- Loading spinner ---------- */
 button.submit-btn.loading {
   opacity:0.72;
   cursor:wait;
@@ -202,8 +209,6 @@ button.submit-btn.loading::after {
   opacity:0;
   animation: spin 1s linear infinite, fadeIn 0.3s ease-in forwards;
 }
-
-/* When removing the loading class, fade out spinner */
 button.submit-btn::after {
   transition: opacity 0.3s ease-out;
   opacity:0;
@@ -219,6 +224,36 @@ button.submit-btn::after {
   100% { opacity:1; }
 }
 
+/* ---------- Ripple effect ---------- */
+.ripple {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-effect 0.6s linear;
+  pointer-events: none;
+}
+@keyframes ripple-effect {
+  to {
+    transform: scale(12);
+    opacity: 0;
+  }
+}
+
+/* ---------- Bounce effect ---------- */
+.bounce {
+  animation: bounce-effect 0.5s ease;
+}
+@keyframes bounce-effect {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.1); }
+  50%  { transform: scale(0.95); }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 /* ---------- Popup ---------- */
 .form-popup {
   position:fixed;
@@ -232,8 +267,17 @@ button.submit-btn::after {
   font-weight:600;
   display:none;
   z-index:1200;
+  opacity: 0;
+  animation: fade-in-out 3s forwards;
 }
 .form-popup.error { background: var(--popup-error); }
+
+@keyframes fade-in-out {
+  0%   { opacity: 0; transform: translateY(-10px); }
+  10%  { opacity: 1; transform: translateY(0); }
+  90%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 820px) {
