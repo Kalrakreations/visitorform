@@ -103,6 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
+  // --- Populate countries ---
+  function populateCountries() {
+    const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Other"];
+    country.innerHTML = "";
+    countries.forEach(c => {
+      country.insertAdjacentHTML('beforeend',
+        `<option value="${c}" ${c === "India" ? "selected" : ""}>${c}</option>`);
+    });
+  }
+  populateCountries();
+
   function populateStates(){
     state.innerHTML = '<option value="">Select State</option>';
     for(let st in statesAndCities){
@@ -230,6 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  if(country.value === "India"){ populateStates(); state.style.display = "block"; city.style.display = "block"; }
+  // Default setup for India
+  if(country.value === "India"){ 
+    populateStates(); 
+    state.style.display = "block"; 
+    city.style.display = "block"; 
+  }
   form.querySelectorAll('input, select').forEach(input=> input.dispatchEvent(new Event('input')));
 });
