@@ -11,22 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
     business: document.getElementById('businessOther')
   };
 
-  // Glow effect
+  // Glow effect + validations
   form.querySelectorAll('input, select').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
 
-      // Name validation
-      if(input.id === "name"){
+      // Name validation (no numbers/emojis)
+      if (input.id === "name") {
         input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
       }
 
-      // Phone validation
-      if(input.id === "phone"){
+      // Phone validation (only numbers + +)
+      if (input.id === "phone") {
         input.value = input.value.replace(/[^\d+]/g, '');
       }
 
-      if (["text","email","tel"].includes(input.type)) {
+      if (["text", "email", "tel"].includes(input.type)) {
         isFilled = input.value.trim() !== "";
       }
       if (input.tagName.toLowerCase() === "select") {
@@ -147,6 +147,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Save offline
+  function saveOffline(data){
+    let offlineData = JSON.parse(localStorage.getItem("offlineForms") || "[]");
+    offlineData.push(data);
+    localStorage.setItem("offlineForms", JSON.stringify(offlineData));
+  }
+
+  // Sync offline data
+  function syncOfflineData(){
+    let offlineData = JSON.parse(localStorage.getItem("offlineForms") || "[]");
+    if(offlineData.length > 0){
+      console.log("Syncing offline data:", offlineData);
+      offlineData.forEach(data=>{
+        fetch(SCRIPT_URL, {method:'POST', body: data})
+        .then(()=> console.log("Synced:", data))
+        .catch(err=> console.error("Sync failed:", err));
+      });
+      localStorage.removeItem("offlineForms");
+    }
+  }
+
+  window.addEventListener("online", syncOfflineData);
+
   // Form submission
   form.addEventListener('submit', async e=>{
     e.preventDefault();
@@ -160,34 +183,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    fetch(SCRIPT_URL, {method:'POST', body: formData})
-    .then(res=>res.text())
-    .then(msg=>{
-      submitBtn.classList.remove('loading');
-      const popup = document.getElementById('formPopup');
-      if(msg.includes("SUCCESS")){
-        popup.textContent = "✅ Form submitted successfully!";
-        popup.classList.remove('error');
-        popup.style.display = "block";
-        form.reset();
-        form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
-        setTimeout(()=>{popup.style.display='none'; location.reload();}, 2000); // Auto-refresh
-      } else {
-        popup.textContent = "❌ Form submission failed!";
+    if(navigator.onLine){
+      fetch(SCRIPT_URL, {method:'POST', body: formData})
+      .then(res=>res.text())
+      .then(msg=>{
+        submitBtn.classList.remove('loading');
+        const popup = document.getElementById('formPopup');
+        if(msg.includes("SUCCESS")){
+          popup.textContent = "✅ Form submitted successfully!";
+          popup.classList.remove('error');
+          popup.style.display = "block";
+          form.reset();
+          form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
+          setTimeout(()=>{popup.style.display='none'; location.reload();}, 2000);
+        } else {
+          popup.textContent = "❌ Form submission failed!";
+          popup.classList.add('error');
+          popup.style.display = "block";
+          setTimeout(()=>{popup.style.display='none';}, 3000);
+        }
+      })
+      .catch(err=>{
+        submitBtn.classList.remove('loading');
+        const popup = document.getElementById('formPopup');
+        popup.textContent = "⚠️ Submission error! Saved offline.";
         popup.classList.add('error');
         popup.style.display = "block";
+        saveOffline(formData);
         setTimeout(()=>{popup.style.display='none';}, 3000);
-      }
-    })
-    .catch(err=>{
-      submitBtn.classList.remove('loading');
+        console.error(err);
+      });
+    } else {
+      saveOffline(formData);
       const popup = document.getElementById('formPopup');
-      popup.textContent = "⚠️ Submission error!";
-      popup.classList.add('error');
+      popup.textContent = "📴 Offline: Data saved locally!";
+      popup.classList.remove('error');
       popup.style.display = "block";
-      setTimeout(()=>{popup.style.display='none';}, 3000);
-      console.error(err);
-    });
+      setTimeout(()=>{popup.style.display='none'; location.reload();}, 2000);
+    }
   });
 
   // Trigger glow on load
