@@ -117,12 +117,9 @@
       <label for="vcBack">Visiting Card (Back)</label>
     </div>
 
-    <!-- Location Capture (optional) -->
-    <div class="input-container">
-      <button type="button" id="getLocationBtn">📍 Capture Location</button>
-      <input type="hidden" id="latitude" name="latitude">
-      <input type="hidden" id="longitude" name="longitude">
-    </div>
+    <!-- Hidden Location Inputs -->
+    <input type="hidden" id="latitude" name="latitude">
+    <input type="hidden" id="longitude" name="longitude">
 
     <button type="submit" class="submit-btn">Submit</button>
   </form>
@@ -134,23 +131,40 @@
 <!-- Script -->
 <script src="form-script.js" defer></script>
 <script>
-  document.getElementById("getLocationBtn").addEventListener("click", () => {
-    if (navigator.geolocation) {
+  // Automatically capture and persist location
+  function autoCaptureLocation() {
+    const latInput = document.getElementById("latitude");
+    const lonInput = document.getElementById("longitude");
+
+    if ("geolocation" in navigator) {
+      const storedLat = localStorage.getItem("lastLatitude");
+      const storedLon = localStorage.getItem("lastLongitude");
+
+      if (storedLat && storedLon) {
+        latInput.value = storedLat;
+        lonInput.value = storedLon;
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          document.getElementById("latitude").value = pos.coords.latitude;
-          document.getElementById("longitude").value = pos.coords.longitude;
-          alert("✅ Location captured!");
+        pos => {
+          latInput.value = pos.coords.latitude;
+          lonInput.value = pos.coords.longitude;
+          localStorage.setItem("lastLatitude", pos.coords.latitude);
+          localStorage.setItem("lastLongitude", pos.coords.longitude);
         },
-        (err) => {
-          alert("⚠️ Location access denied or unavailable.");
-          console.error(err);
-        }
+        err => {
+          console.warn("Location access denied or unavailable.", err.message);
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
       );
     } else {
-      alert("❌ Geolocation not supported by this browser.");
+      console.warn("Geolocation not supported by this browser.");
     }
-  });
+  }
+
+  autoCaptureLocation();
+  setInterval(autoCaptureLocation, 30000); // Refresh location every 30s
 </script>
 
 </body>
