@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let k in record.data) fd.append(k, record.data[k]);
           await fetch(SCRIPT_URL, { method: "POST", body: fd });
           store.delete(record.id);
-
           showPopup("✅ Offline submission synced!", false);
         } catch (err) {
           console.error("Resend failed:", err);
@@ -175,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
 
-  // --- 📍 Location Capture ---
+  // --- 📍 Secret Location Capture ---
   function captureLocation() {
     const latInput = document.getElementById("latitude");
     const lonInput = document.getElementById("longitude");
@@ -237,15 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     button.classList.add(success ? "success" : "error", "bounce");
 
-    // Auto-reset color back to default after 2s
-    setTimeout(() => {
-      button.classList.remove("success", "error");
-    }, 2000);
-
+    // Auto-reset after 3s
     setTimeout(() => {
       ripple.remove();
-      button.classList.remove("bounce");
-    }, 600);
+      button.classList.remove("bounce", "success", "error");
+    }, 3000);
   }
 
   // Form submission
