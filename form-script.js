@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let k in record.data) fd.append(k, record.data[k]);
           await fetch(SCRIPT_URL, { method: "POST", body: fd });
           store.delete(record.id);
+
           showPopup("✅ Offline submission synced!", false);
         } catch (err) {
           console.error("Resend failed:", err);
@@ -226,12 +227,26 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>{popup.style.display='none';}, 3000);
   }
 
-  // Form submission with spinner integration
+  // --- Ripple + Bounce helpers ---
+  function addRippleEffect(e, button, success) {
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    ripple.style.left = `${e.offsetX}px`;
+    ripple.style.top = `${e.offsetY}px`;
+    button.appendChild(ripple);
+
+    button.classList.add(success ? "success" : "error", "bounce");
+
+    setTimeout(() => {
+      ripple.remove();
+      button.classList.remove("bounce");
+    }, 600);
+  }
+
+  // Form submission
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
-
-    // --- ADD LOADING SPINNER ---
     submitBtn.classList.add('loading');
 
     const vcFront = await getImageBase64(document.getElementById('vcFront'));
@@ -245,20 +260,23 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch(SCRIPT_URL, {method:'POST', body: formData})
       .then(res=>res.text())
       .then(msg=>{
-        submitBtn.classList.remove('loading'); // remove spinner
+        submitBtn.classList.remove('loading');
         if(msg.includes("SUCCESS")){
           showPopup("✅ Form submitted successfully!", false);
           form.reset();
           form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
+          addRippleEffect(e, submitBtn, true);
           setTimeout(()=>location.reload(), 2000);
         } else {
           showPopup("❌ Form submission failed!", true);
+          addRippleEffect(e, submitBtn, false);
         }
       })
       .catch(err=>{
         submitBtn.classList.remove('loading');
         showPopup("⚠️ Submission error!", true);
         console.error(err);
+        addRippleEffect(e, submitBtn, false);
       });
     } else {
       let plainData = {};
@@ -268,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showPopup("📩 You are offline. Form saved & will auto-submit later.", false);
       form.reset();
       form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
+      addRippleEffect(e, submitBtn, true);
     }
   });
 
