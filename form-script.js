@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
 
-  // --- 📍 Secret Location Capture ---
+  // --- 📍 Location Capture ---
   function captureLocation() {
     const latInput = document.getElementById("latitude");
     const lonInput = document.getElementById("longitude");
@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3000);
   }
 
-  // Form submission
+  // --- Form submission ---
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
