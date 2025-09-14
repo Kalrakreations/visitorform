@@ -1,11 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visitor Form - Sahil Kalra</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="form-style.css">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+  <link rel="shortcut icon" href="icons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Theme color for browsers -->
+  <meta name="theme-color" content="#007bff">
 </head>
 <body>
 
@@ -18,7 +31,7 @@
     </p>
   </div>
 
-  <!-- Apple-style Dark/Light Mode Toggle -->
+  <!-- Dark/Light Mode Toggle -->
   <div class="theme-toggle">
     <input type="checkbox" id="darkModeSwitch">
     <label for="darkModeSwitch" class="switch"></label>
@@ -28,7 +41,6 @@
 <main class="form-container">
   <h1>Visitor Form</h1>
   <form id="customerForm" autocomplete="off">
-
     <!-- Event Name -->
     <div class="input-container">
       <input type="text" name="eventName" id="eventName" placeholder=" ">
@@ -137,21 +149,18 @@
 <!-- Scripts -->
 <script src="form-script.js" defer></script>
 <script>
-  // Automatically capture and persist location
+  // Auto location capture
   function autoCaptureLocation() {
     const latInput = document.getElementById("latitude");
     const lonInput = document.getElementById("longitude");
-
     if ("geolocation" in navigator) {
       const storedLat = localStorage.getItem("lastLatitude");
       const storedLon = localStorage.getItem("lastLongitude");
-
       if (storedLat && storedLon) {
         latInput.value = storedLat;
         lonInput.value = storedLon;
         return;
       }
-
       navigator.geolocation.getCurrentPosition(
         pos => {
           latInput.value = pos.coords.latitude;
@@ -159,28 +168,21 @@
           localStorage.setItem("lastLatitude", pos.coords.latitude);
           localStorage.setItem("lastLongitude", pos.coords.longitude);
         },
-        err => {
-          console.warn("Location access denied or unavailable.", err.message);
-        },
+        err => console.warn("Location access denied:", err.message),
         { enableHighAccuracy: true, timeout: 5000 }
       );
-    } else {
-      console.warn("Geolocation not supported by this browser.");
     }
   }
-
   autoCaptureLocation();
-  setInterval(autoCaptureLocation, 30000); // Refresh location every 30s
+  setInterval(autoCaptureLocation, 30000);
 
-  // Dark/Light mode toggle
+  // Dark/Light toggle
   const toggle = document.getElementById("darkModeSwitch");
   const root = document.documentElement;
-
   if(localStorage.getItem("theme") === "dark"){
     root.setAttribute("data-theme", "dark");
     toggle.checked = true;
   }
-
   toggle.addEventListener("change", () => {
     if(toggle.checked){
       root.setAttribute("data-theme", "dark");
@@ -190,7 +192,15 @@
       localStorage.setItem("theme", "light");
     }
   });
-</script>
 
+  // Register Service Worker for PWA
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+      .catch(err => console.error('❌ SW registration failed:', err));
+    });
+  }
+</script>
 </body>
 </html>
