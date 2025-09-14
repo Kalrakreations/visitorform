@@ -31,13 +31,13 @@
 
     <!-- Name -->
     <div class="input-container">
-      <input type="text" name="name" id="name" pattern="[A-Za-z\s]+" title="Only alphabets and spaces allowed" placeholder=" " required>
+      <input type="text" name="name" id="name" placeholder=" " required>
       <label for="name">Name *</label>
     </div>
 
     <!-- Phone -->
     <div class="input-container">
-      <input type="tel" name="phone" id="phone" pattern="[0-9+\-]+" title="Only digits, + and - allowed" placeholder=" " required>
+      <input type="tel" name="phone" id="phone" placeholder=" " required>
       <label for="phone">Phone *</label>
     </div>
 
@@ -61,7 +61,7 @@
         <option value="Manager">Manager</option>
         <option value="CEO">CEO</option>
         <option value="Founder">Founder</option>
-        <option value="Others">Others</option>
+        <option value="Other">Other</option>
       </select>
       <input type="text" id="designationOther" name="designationOther" placeholder="Enter your designation" style="display:none;">
     </div>
@@ -69,7 +69,8 @@
     <!-- Country -->
     <div class="input-container">
       <select id="country" name="country">
-        <!-- Options added by JS -->
+        <option value="India" selected>India</option>
+        <option value="Other">Other</option>
       </select>
       <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
     </div>
@@ -99,7 +100,7 @@
         <option value="Exporter">Exporter</option>
         <option value="E-commerce">E-commerce</option>
         <option value="Certification Services">Certification Services</option>
-        <option value="Others">Others</option>
+        <option value="Other">Other</option>
       </select>
       <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
     </div>
@@ -128,3 +129,4 @@
 
 </body>
 </html>
+
