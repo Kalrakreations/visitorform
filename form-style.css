@@ -1,4 +1,6 @@
-/* Reset & Base */
+/* ===========================
+   Reset & Base
+=========================== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -13,9 +15,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  line-height: 1.5;
 }
 
-/* Header */
+/* ===========================
+   Header
+=========================== */
 .site-header {
   width: 100%;
   padding: 15px 30px;
@@ -36,7 +41,9 @@ body {
   font-weight: 600;
 }
 
-/* Form Container */
+/* ===========================
+   Form Container
+=========================== */
 .form-container {
   width: 95%;
   max-width: 700px;
@@ -46,7 +53,6 @@ body {
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   position: relative;
-  overflow: hidden;
 }
 
 .form-container h1 {
@@ -57,14 +63,17 @@ body {
   color: #222;
 }
 
-/* Input Container */
+/* ===========================
+   Input Fields
+=========================== */
 .input-container {
   position: relative;
   margin: 20px 0;
 }
 
 .input-container input,
-.input-container select {
+.input-container select,
+.input-container textarea {
   width: 100%;
   padding: 14px 16px;
   border: 1px solid #ccc;
@@ -77,12 +86,13 @@ body {
 }
 
 .input-container input:focus,
-.input-container select:focus {
+.input-container select:focus,
+.input-container textarea:focus {
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0,123,255,0.4);
 }
 
-/* Floating labels */
+/* Floating Labels */
 .input-container label {
   position: absolute;
   left: 16px;
@@ -92,12 +102,15 @@ body {
   font-size: 16px;
   pointer-events: none;
   transition: 0.3s;
+  background: transparent;
 }
 
 .input-container input:focus + label,
 .input-container input:not(:placeholder-shown) + label,
 .input-container select:focus + label,
-.input-container select:not([value=""]) + label {
+.input-container select:not([value=""]) + label,
+.input-container textarea:focus + label,
+.input-container textarea:not(:placeholder-shown) + label {
   top: -10px;
   left: 12px;
   font-size: 13px;
@@ -106,13 +119,23 @@ body {
   padding: 0 5px;
 }
 
-/* Green glowing border when filled */
+/* Success Glow */
 .glow-success {
   border-color: #28a745 !important;
   box-shadow: 0 0 6px #28a745;
 }
 
-/* Submit button */
+/* ===========================
+   File Input
+=========================== */
+input[type="file"] {
+  padding: 8px;
+  font-size: 15px;
+}
+
+/* ===========================
+   Button
+=========================== */
 button.submit-btn {
   width: 100%;
   padding: 14px;
@@ -151,7 +174,9 @@ button.submit-btn.loading::after {
   100% { transform: translate(-50%, -50%) rotate(360deg);}
 }
 
-/* Popup */
+/* ===========================
+   Popup
+=========================== */
 .form-popup {
   position: fixed;
   top: 20px;
@@ -171,20 +196,18 @@ button.submit-btn.loading::after {
   background: #ff4d4d;
 }
 
-/* File input styling */
-input[type="file"] {
-  padding: 8px;
-  font-size: 15px;
-}
-
-/* Responsive */
+/* ===========================
+   Responsive
+=========================== */
 @media(max-width: 768px){
   .form-container {
     padding: 20px;
   }
 }
 
-/* Dark Mode */
+/* ===========================
+   Dark Mode (Auto-detect)
+=========================== */
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #121212;
@@ -206,6 +229,11 @@ input[type="file"] {
     color: #bbb;
   }
 
+  .input-container label {
+    color: #aaa;
+    background: #1e1e1e;
+  }
+
   .submit-btn {
     background-color: #333;
     color: #fff;
@@ -220,12 +248,12 @@ input[type="file"] {
     box-shadow: 0 0 8px 2px #4caf50;
   }
 
-  #formPopup {
+  .form-popup {
     background-color: #333;
     color: #fff;
   }
 
-  .error {
+  .form-popup.error {
     background-color: #b00020;
     color: #fff;
   }
@@ -238,5 +266,4 @@ input[type="file"] {
   a {
     color: #90caf9;
   }
-
 }
