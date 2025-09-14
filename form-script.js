@@ -175,6 +175,30 @@ document.addEventListener('DOMContentLoaded', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
 
+  // --- 📍 Location Capture ---
+  function captureLocation() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          document.getElementById("latitude").value = pos.coords.latitude;
+          document.getElementById("longitude").value = pos.coords.longitude;
+          localStorage.setItem("lastLatitude", pos.coords.latitude);
+          localStorage.setItem("lastLongitude", pos.coords.longitude);
+        },
+        err => {
+          console.warn("Location capture failed:", err.message);
+          if(localStorage.getItem("lastLatitude")){
+            document.getElementById("latitude").value = localStorage.getItem("lastLatitude");
+            document.getElementById("longitude").value = localStorage.getItem("lastLongitude");
+          }
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+  }
+  captureLocation();
+  setInterval(captureLocation, 30000);
+
   // Convert image to Base64
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
@@ -210,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
     if (navigator.onLine) {
-      // Try normal submission
       fetch(SCRIPT_URL, {method:'POST', body: formData})
       .then(res=>res.text())
       .then(msg=>{
@@ -230,7 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
       });
     } else {
-      // Save offline
       let plainData = {};
       formData.forEach((val,key)=>plainData[key]=val);
       saveOffline({ data: plainData, timestamp: Date.now() });
