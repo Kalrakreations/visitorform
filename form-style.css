@@ -1,121 +1,242 @@
-/* Reset */
+/* Reset & Base */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Body */
 body {
-  background: #f4f6f8;
+  background: #f5f7fa;
   color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  padding: 20px;
-  transition: background 0.3s ease, color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Header */
+.site-header {
+  width: 100%;
+  padding: 15px 30px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: flex-start;
+}
+
+.header-left p {
+  font-weight: 600;
+  color: #333;
+}
+
+.header-left a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+}
+
+/* Form Container */
+.form-container {
+  width: 95%;
+  max-width: 700px;
+  background: #fff;
+  margin: 40px 0;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.form-container h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Input Container */
+.input-container {
+  position: relative;
+  margin: 20px 0;
+}
+
+.input-container input,
+.input-container select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  font-size: 16px;
+  background: #fff;
+  color: #333;
+  transition: 0.3s;
+}
+
+.input-container input:focus,
+.input-container select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.4);
+}
+
+/* Floating labels */
+.input-container label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 16px;
+  pointer-events: none;
+  transition: 0.3s;
+}
+
+.input-container input:focus + label,
+.input-container input:not(:placeholder-shown) + label,
+.input-container select:focus + label,
+.input-container select:not([value=""]) + label {
+  top: -10px;
+  left: 12px;
+  font-size: 13px;
+  color: #007bff;
+  background: #fff;
+  padding: 0 5px;
+}
+
+/* Green glowing border when filled */
+.glow-success {
+  border-color: #28a745 !important;
+  box-shadow: 0 0 6px #28a745;
+}
+
+/* Submit button */
+button.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #007bff;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: 0.3s;
+}
+
+button.submit-btn:hover {
+  background: #0056b3;
+}
+
+button.submit-btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg);}
+  100% { transform: translate(-50%, -50%) rotate(360deg);}
+}
+
+/* Popup */
+.form-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: #fff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  display: none;
+  font-weight: 600;
+  z-index: 1000;
+  transition: 0.3s;
+}
+
+.form-popup.error {
+  background: #ff4d4d;
+}
+
+/* File input styling */
+input[type="file"] {
+  padding: 8px;
+  font-size: 15px;
+}
+
+/* Responsive */
+@media(max-width: 768px){
+  .form-container {
+    padding: 20px;
+  }
 }
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
   body {
-    background: #1e1e1e;
-    color: #f4f4f4;
+    background-color: #121212;
+    color: #f1f1f1;
   }
+
   .form-container {
-    background: #2b2b2b;
-    color: #f4f4f4;
+    background-color: #1e1e1e;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   }
-  input, select, button {
-    background: #3b3b3b;
+
+  input, select, textarea {
+    background-color: #2a2a2a;
+    color: #f1f1f1;
+    border: 1px solid #555;
+  }
+
+  input::placeholder, select::placeholder {
+    color: #bbb;
+  }
+
+  .submit-btn {
+    background-color: #333;
     color: #fff;
     border: 1px solid #555;
   }
-}
 
-/* Form container */
-.form-container {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 420px;
-  animation: fadeIn 0.5s ease;
-  transition: background 0.3s ease;
-}
+  .submit-btn:hover {
+    background-color: #555;
+  }
 
-/* Heading */
-.form-container h1 {
-  font-size: 1.6rem;
-  margin-bottom: 20px;
-  text-align: center;
-  color: #4CAF50;
-}
+  .glow-success {
+    box-shadow: 0 0 8px 2px #4caf50;
+  }
 
-/* Labels */
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
+  #formPopup {
+    background-color: #333;
+    color: #fff;
+  }
 
-/* Inputs & Select */
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 18px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  outline: none;
-  font-size: 1rem;
-  transition: border 0.3s ease, box-shadow 0.3s ease;
-}
+  .error {
+    background-color: #b00020;
+    color: #fff;
+  }
 
-/* Glow green when valid */
-input:valid, select:valid {
-  border: 1px solid #4CAF50;
-  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
-}
+  header.site-header {
+    background-color: #1a1a1a;
+    color: #fff;
+  }
 
-/* Error styling */
-input:invalid:focus, select:invalid:focus {
-  border: 1px solid #e53935;
-  box-shadow: 0 0 6px rgba(229, 57, 53, 0.6);
-}
+  a {
+    color: #90caf9;
+  }
 
-/* Button */
-button {
-  background: #4CAF50;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-button:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-/* Status */
-#status {
-  text-align: center;
-  margin-top: 10px;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-/* Animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
