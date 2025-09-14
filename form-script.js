@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
       let isFilled = false;
 
       if(input.id === "name"){
-        input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+        input.value = input.value.replace(/[^a-zA-Z\s]/g, ''); // only letters
       }
 
       if(input.id === "phone"){
-        input.value = input.value.replace(/[^\d+]/g, '');
+        input.value = input.value.replace(/[^\d+]/g, ''); // only + and numbers
       }
 
       if (["text","email","tel"].includes(input.type)) {
@@ -92,8 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Country logic
   country.addEventListener('change', () => {
     if(country.value === "India"){
-      populateStates(); // ✅ FIX: Now states will load
+      populateStates();
       state.style.display = "block";
+      city.style.display = "block";
       otherFields.country.style.display = "none";
       otherFields.state.style.display = "none";
       otherFields.city.style.display = "none";
@@ -101,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if(country.value === "Other"){
       otherFields.country.style.display = "block";
       state.style.display = "none";
-      city.innerHTML = '<option value="Other">Other</option>';
+      city.style.display = "none";
       otherFields.state.style.display = "block";
       otherFields.city.style.display = "block";
     } else {
@@ -113,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Populate cities
+  // State logic
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
@@ -123,13 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
         city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
       });
       city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
+      city.style.display = "block";
     } else if(state.value === "Other"){
       otherFields.state.style.display = "block";
-      city.innerHTML = '<option value="Other">Other</option>';
       otherFields.city.style.display = "block";
     }
   });
 
+  // City logic
   city.addEventListener('change', () => {
     otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
   });
@@ -189,9 +191,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ✅ FIX: Trigger default country change so states show if "India" is already pre-selected
+  // ✅ Ensure states load if India is already selected on load
   if(country.value === "India"){
     populateStates();
+    state.style.display = "block";
+    city.style.display = "block";
   }
 
   // Trigger glow on load
