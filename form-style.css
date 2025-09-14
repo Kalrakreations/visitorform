@@ -1,6 +1,5 @@
 /* ===================================================
-   Modern Form CSS — variables + robust dark mode
-   Integrated with ripple, bounce & popup animations
+   Modern form CSS — variables + robust dark mode
    =================================================== */
 
 /* ---------- Theme variables (light default) ---------- */
@@ -11,7 +10,6 @@
   --muted: #999;
   --primary: #007bff;
   --success: #28a745;
-  --error: #dc3545;
   --popup-bg: #4CAF50;
   --popup-error: #ff4d4d;
   --shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -26,7 +24,6 @@
     --muted: #bfbfbf;
     --primary: #66aaff;
     --success: #4caf50;
-    --error: #b00020;
     --popup-bg: #333;
     --popup-error: #b00020;
     --shadow: 0 8px 30px rgba(0,0,0,0.6);
@@ -125,7 +122,7 @@ body {
   padding: 0 6px;
 }
 
-/* Lifted label */
+/* Conditions that lift the label */
 .input-container input:focus + label,
 .input-container input:not(:placeholder-shown) + label,
 .input-container select:focus + label,
@@ -139,7 +136,7 @@ body {
   color: var(--primary);
 }
 
-/* JS fallback */
+/* Fallback: if JS adds .filled to container */
 .input-container.filled label {
   top: -9px;
   left: 12px;
@@ -168,7 +165,7 @@ input[type="file"] {
   border-radius: 6px;
 }
 
-/* ---------- Submit Button ---------- */
+/* ---------- Button ---------- */
 button.submit-btn {
   width:100%;
   padding:14px;
@@ -180,17 +177,23 @@ button.submit-btn {
   border-radius:8px;
   cursor:pointer;
   position:relative;
-  overflow:hidden;
   transition: transform .12s ease, background .12s ease, opacity .12s;
 }
 button.submit-btn:hover { transform: translateY(-2px); }
 button.submit-btn:active { transform:none; }
 
-/* Success/Error button states */
-button.success { background: var(--success) !important; }
-button.error { background: var(--error) !important; }
+/* ---------- Submit Button States ---------- */
+button.submit-btn.success {
+  background: var(--success) !important;
+  animation: bounce 0.5s ease;
+}
 
-/* ---------- Loading spinner ---------- */
+button.submit-btn.error {
+  background: var(--popup-error) !important;
+  animation: ripple-fade 0.6s ease;
+}
+
+/* ---------- Loading spinner with fade-in/out ---------- */
 button.submit-btn.loading {
   opacity:0.72;
   cursor:wait;
@@ -214,7 +217,7 @@ button.submit-btn::after {
   opacity:0;
 }
 
-/* ---------- Spinner keyframes ---------- */
+/* ---------- Animations ---------- */
 @keyframes spin {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -223,35 +226,16 @@ button.submit-btn::after {
   0% { opacity:0; }
   100% { opacity:1; }
 }
-
-/* ---------- Ripple effect ---------- */
-.ripple {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: rgba(255,255,255,0.6);
-  border-radius: 50%;
-  transform: scale(0);
-  animation: ripple-effect 0.6s linear;
-  pointer-events: none;
-}
-@keyframes ripple-effect {
-  to {
-    transform: scale(12);
-    opacity: 0;
-  }
-}
-
-/* ---------- Bounce effect ---------- */
-.bounce {
-  animation: bounce-effect 0.5s ease;
-}
-@keyframes bounce-effect {
+@keyframes bounce {
   0%   { transform: scale(1); }
-  30%  { transform: scale(1.1); }
+  25%  { transform: scale(1.12); }
   50%  { transform: scale(0.95); }
-  70%  { transform: scale(1.05); }
+  75%  { transform: scale(1.05); }
   100% { transform: scale(1); }
+}
+@keyframes ripple-fade {
+  0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.6); }
+  100% { box-shadow: 0 0 0 18px rgba(255,77,77,0); }
 }
 
 /* ---------- Popup ---------- */
@@ -267,17 +251,8 @@ button.submit-btn::after {
   font-weight:600;
   display:none;
   z-index:1200;
-  opacity: 0;
-  animation: fade-in-out 3s forwards;
 }
 .form-popup.error { background: var(--popup-error); }
-
-@keyframes fade-in-out {
-  0%   { opacity: 0; transform: translateY(-10px); }
-  10%  { opacity: 1; transform: translateY(0); }
-  90%  { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 820px) {
