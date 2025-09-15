@@ -1,277 +1,306 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Form</title>
-  <link rel="stylesheet" href="style.css">
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const form = document.getElementById('customerForm');
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec";
 
-  <!-- Manifest for PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0d6efd">
+  const fields = ["designation","country","state","city","business"];
+  const otherFields = {
+    designation: document.getElementById('designationOther'),
+    country: document.getElementById('countryOther'),
+    state: document.getElementById('stateOther'),
+    city: document.getElementById('cityOther'),
+    business: document.getElementById('businessOther')
+  };
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(reg => console.log("✅ Service Worker registered", reg))
-          .catch(err => console.error("❌ SW registration failed:", err));
-      });
-    }
-  </script>
+  // ================== IndexedDB setup ==================
+  let db;
+  const request = indexedDB.open("VisitorFormDB", 1);
+  request.onupgradeneeded = e => {
+    db = e.target.result;
+    db.createObjectStore("submissions", { keyPath: "id", autoIncrement: true });
+  };
+  request.onsuccess = e => { db = e.target.result; tryResendData(); };
+  request.onerror = e => console.error("IndexedDB error:", e);
 
-  <style>
-    body {
-      background: #f4f4f9;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      color: #222;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-    }
-    h2 { text-align:center; margin-bottom:20px; }
+  function saveOffline(data) {
+    if(!db) return;
+    const tx = db.transaction("submissions", "readwrite");
+    tx.objectStore("submissions").add(data);
+  }
 
-    /* Floating label wrapper */
-    .input-group {
-      position: relative;
-      margin-top: 18px;
-    }
-    .input-group input,
-    .input-group select,
-    .input-group textarea {
-      width: 100%;
-      padding: 14px 10px 10px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      outline: none;
-      font-size: 16px;
-      background: transparent;
-    }
-    .input-group label {
-      position: absolute;
-      left: 12px;
-      top: 14px;
-      color: #666;
-      font-size: 16px;
-      transition: all 0.2s ease;
-      pointer-events: none;
-    }
-    .input-group input:focus + label,
-    .input-group select:focus + label,
-    .input-group textarea:focus + label,
-    .input-group.filled label {
-      top: -8px;
-      left: 8px;
-      font-size: 12px;
-      background: #fff;
-      padding: 0 4px;
-      color: #0d6efd;
-    }
+  async function tryResendData() {
+    if (!navigator.onLine || !db) return;
+    const tx = db.transaction("submissions", "readwrite");
+    const store = tx.objectStore("submissions");
+    const getAll = store.getAll();
 
-    /* Remarks textarea height */
-    textarea { resize: vertical; min-height: 80px; }
+    getAll.onsuccess = async () => {
+      const uniqueRecords = [];
+      const existingHashes = new Set();
 
-    /* Glow effect */
-    input.glow-success, select.glow-success, textarea.glow-success {
-      border-color: #28a745;
-      box-shadow: 0 0 6px #28a745;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 22px;
-      padding: 14px;
-      background: #0d6efd;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button.loading { opacity: 0.7; pointer-events:none; }
-
-    #formPopup {
-      display: none;
-      text-align: center;
-      padding: 12px;
-      margin-top: 16px;
-      border-radius: 6px;
-    }
-    #formPopup.error { background: #ffcccc; color: #900; }
-    #formPopup:not(.error) { background: #d4edda; color: #155724; }
-
-    /* Drag-drop */
-    .drop-zone {
-      border: 2px dashed #aaa;
-      border-radius: 8px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .drop-zone.dragover { border-color:#0d6efd; background:#eef4ff; }
-
-    /* Dark mode */
-    @media (prefers-color-scheme: dark) {
-      body { background: #121212; color:#f1f1f1; }
-      .container { background: #1e1e1e; color:#f1f1f1; }
-      .input-group input,
-      .input-group select,
-      .input-group textarea {
-        background:#2b2b2b;
-        color:#f1f1f1;
-        border:1px solid #444;
+      for (const record of getAll.result) {
+        const hash = JSON.stringify(record.data);
+        if(!existingHashes.has(hash)){
+          uniqueRecords.push(record);
+          existingHashes.add(hash);
+        }
       }
-      .input-group label { background:#1e1e1e; }
-      button { background:#0d6efd; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Customer Information Form</h2>
-    <form id="customerForm">
 
-      <div class="input-group">
-        <input type="text" id="name" name="name" required>
-        <label for="name">Full Name</label>
-      </div>
-
-      <div class="input-group">
-        <input type="tel" id="phone" name="phone" required>
-        <label for="phone">Phone Number</label>
-      </div>
-
-      <div class="input-group">
-        <input type="email" id="email" name="email" required>
-        <label for="email">Email</label>
-      </div>
-
-      <div class="input-group">
-        <select id="designation" name="designation" required>
-          <option value=""></option>
-          <option value="Owner">Owner</option>
-          <option value="Manager">Manager</option>
-          <option value="Staff">Staff</option>
-          <option value="Other">Other</option>
-        </select>
-        <label for="designation">Designation</label>
-      </div>
-      <div class="input-group" id="designationOtherGroup" style="display:none;">
-        <input type="text" id="designationOther" name="designationOther">
-        <label for="designationOther">Other Designation</label>
-      </div>
-
-      <div class="input-group">
-        <select id="country" name="country" required>
-          <option value=""></option>
-          <option value="India">India</option>
-          <option value="Other">Other</option>
-        </select>
-        <label for="country">Country</label>
-      </div>
-      <div class="input-group" id="countryOtherGroup" style="display:none;">
-        <input type="text" id="countryOther" name="countryOther">
-        <label for="countryOther">Other Country</label>
-      </div>
-
-      <div class="input-group" id="stateGroup" style="display:none;">
-        <select id="state" name="state"></select>
-        <label for="state">State</label>
-      </div>
-      <div class="input-group" id="stateOtherGroup" style="display:none;">
-        <input type="text" id="stateOther" name="stateOther">
-        <label for="stateOther">Other State</label>
-      </div>
-
-      <div class="input-group" id="cityGroup" style="display:none;">
-        <select id="city" name="city"></select>
-        <label for="city">City</label>
-      </div>
-      <div class="input-group" id="cityOtherGroup" style="display:none;">
-        <input type="text" id="cityOther" name="cityOther">
-        <label for="cityOther">Other City</label>
-      </div>
-
-      <div class="input-group">
-        <select id="business" name="business" required>
-          <option value=""></option>
-          <option value="Retail">Retail</option>
-          <option value="Wholesale">Wholesale</option>
-          <option value="Distributor">Distributor</option>
-          <option value="Other">Other</option>
-        </select>
-        <label for="business">Business Type</label>
-      </div>
-      <div class="input-group" id="businessOtherGroup" style="display:none;">
-        <input type="text" id="businessOther" name="businessOther">
-        <label for="businessOther">Other Business</label>
-      </div>
-
-      <!-- Drag & Drop for Visiting Card Front -->
-      <div class="drop-zone" id="frontDrop">Drop VC Front / Click to Upload
-        <input type="file" id="vcFront" name="vcFront" accept="image/*" hidden>
-      </div>
-
-      <!-- Drag & Drop for Visiting Card Back -->
-      <div class="drop-zone" id="backDrop">Drop VC Back / Click to Upload
-        <input type="file" id="vcBack" name="vcBack" accept="image/*" hidden>
-      </div>
-
-      <!-- Remarks -->
-      <div class="input-group">
-        <textarea id="remarks" name="remarks"></textarea>
-        <label for="remarks">Comments / Remarks</label>
-      </div>
-
-      <button type="submit">Submit</button>
-    </form>
-    <div id="formPopup"></div>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const groups = document.querySelectorAll(".input-group input, .input-group select, .input-group textarea");
-      groups.forEach(el => {
-        const parent = el.parentElement;
-        const check = () => {
-          if (el.value.trim() !== "") parent.classList.add("filled");
-          else parent.classList.remove("filled");
-        };
-        el.addEventListener("input", check);
-        el.addEventListener("blur", check);
-        el.addEventListener("focus", () => parent.classList.add("filled"));
-        check();
-      });
-
-      // Drag & drop
-      function setupDrop(dropId, inputId) {
-        const dropZone = document.getElementById(dropId);
-        const input = document.getElementById(inputId);
-        dropZone.addEventListener("click", () => input.click());
-        dropZone.addEventListener("dragover", e => {
-          e.preventDefault();
-          dropZone.classList.add("dragover");
-        });
-        dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
-        dropZone.addEventListener("drop", e => {
-          e.preventDefault();
-          dropZone.classList.remove("dragover");
-          if (e.dataTransfer.files.length) {
-            input.files = e.dataTransfer.files;
+      for (const record of uniqueRecords) {
+        try {
+          const fd = new FormData();
+          for (let k in record.data) fd.append(k, record.data[k]);
+          const res = await fetch(SCRIPT_URL, { method: "POST", body: fd });
+          const text = await res.text();
+          if(text.includes("SUCCESS")){
+            store.delete(record.id);
+            showPopup("✅ Offline submission synced!", false);
           }
-        });
+        } catch (err) {
+          console.error("Resend failed:", err);
+        }
       }
-      setupDrop("frontDrop", "vcFront");
-      setupDrop("backDrop", "vcBack");
+    };
+  }
+
+  window.addEventListener("online", tryResendData);
+
+  // ================== Glow + Floating Labels ==================
+  form.querySelectorAll('.input-group input, .input-group select, .input-group textarea').forEach(el => {
+    const parent = el.parentElement;
+
+    const updateState = () => {
+      if (el.value && el.value.trim() !== "") {
+        parent.classList.add("filled");
+      } else {
+        parent.classList.remove("filled");
+      }
+    };
+
+    el.addEventListener('input', updateState);
+    el.addEventListener('blur', updateState);
+    el.addEventListener('focus', () => parent.classList.add("filled"));
+
+    updateState();
+  });
+
+  // Name & Phone sanitization
+  form.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', () => {
+      if(input.id === "name") input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+      if(input.id === "phone") input.value = input.value.replace(/[^\d+]/g, '');
     });
-  </script>
-</body>
-</html>
+  });
+
+  // ================== States & Cities ==================
+  const statesAndCities = {
+    "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
+    "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
+    "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat"],
+    "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur"],
+    "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
+    "Goa": ["Panaji","Margao","Vasco da Gama"],
+    "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
+    "Haryana": ["Gurugram","Faridabad","Panipat","Hisar"],
+    "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
+    "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
+    "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru"],
+    "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
+    "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
+    "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+    "Manipur": ["Imphal","Thoubal","Bishnupur"],
+    "Meghalaya": ["Shillong","Tura","Nongpoh"],
+    "Mizoram": ["Aizawl","Lunglei","Champhai"],
+    "Nagaland": ["Kohima","Dimapur","Mokokchung"],
+    "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
+    "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda"],
+    "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
+    "Sikkim": ["Gangtok","Geyzing","Namchi"],
+    "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
+    "Telangana": ["Hyderabad","Warangal","Nizamabad"],
+    "Tripura": ["Agartala","Udaipur","Dharmanagar"],
+    "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
+    "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
+    "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
+    "Chandigarh": ["Chandigarh","New Chandigarh"]
+  };
+
+  const country = document.getElementById('country');
+  const state = document.getElementById('state');
+  const city = document.getElementById('city');
+
+  function populateCountries() {
+    const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Other"];
+    country.innerHTML = "";
+    countries.forEach(c => {
+      country.insertAdjacentHTML('beforeend', `<option value="${c}" ${c==="India"?"selected":""}>${c}</option>`);
+    });
+  }
+  populateCountries();
+
+  function populateStates(){
+    state.innerHTML = '<option value="">Select State</option>';
+    for(let st in statesAndCities){
+      state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
+    }
+    state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
+  }
+
+  fields.forEach(f => {
+    document.getElementById(f).addEventListener('change', () => {
+      otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
+    });
+  });
+
+  country.addEventListener('change', () => {
+    if(country.value === "India"){
+      populateStates();
+      state.style.display = "block";
+      city.style.display = "block";
+      otherFields.country.style.display = "none";
+      otherFields.state.style.display = "none";
+      otherFields.city.style.display = "none";
+      city.innerHTML = '<option value="">Select City</option>';
+    } else if(country.value === "Other"){
+      otherFields.country.style.display = "block";
+      state.style.display = "none";
+      city.style.display = "none";
+      otherFields.state.style.display = "block";
+      otherFields.city.style.display = "block";
+    } else {
+      state.style.display = "none";
+      city.style.display = "none";
+      otherFields.country.style.display = "none";
+      otherFields.state.style.display = "none";
+      otherFields.city.style.display = "none";
+    }
+  });
+
+  state.addEventListener('change', () => {
+    city.innerHTML = '<option value="">Select City</option>';
+    otherFields.city.style.display = "none";
+    if(statesAndCities[state.value]){
+      statesAndCities[state.value].forEach(ct => city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`));
+      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
+      city.style.display = "block";
+    } else if(state.value==="Other"){
+      otherFields.state.style.display = "block";
+      otherFields.city.style.display = "block";
+    }
+  });
+
+  city.addEventListener('change', () => {
+    otherFields.city.style.display = (city.value==="Other")?"block":"none";
+  });
+
+  // ================== Location capture ==================
+  function captureLocation() {
+    const latInput = document.getElementById("latitude") || document.createElement("input");
+    const lonInput = document.getElementById("longitude") || document.createElement("input");
+    latInput.type="hidden"; latInput.id="latitude"; latInput.name="latitude";
+    lonInput.type="hidden"; lonInput.id="longitude"; lonInput.name="longitude";
+    form.appendChild(latInput); form.appendChild(lonInput);
+
+    if("geolocation" in navigator){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        latInput.value = pos.coords.latitude;
+        lonInput.value = pos.coords.longitude;
+        localStorage.setItem("lastLatitude", pos.coords.latitude);
+        localStorage.setItem("lastLongitude", pos.coords.longitude);
+      }, err=>{
+        if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
+          latInput.value = localStorage.getItem("lastLatitude");
+          lonInput.value = localStorage.getItem("lastLongitude");
+        } else console.warn("Location capture failed:", err.message);
+      }, {enableHighAccuracy:true, timeout:5000});
+    } else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
+      latInput.value = localStorage.getItem("lastLatitude");
+      lonInput.value = localStorage.getItem("lastLongitude");
+    }
+  }
+  captureLocation();
+  setInterval(captureLocation, 30000);
+
+  // ================== Image handling ==================
+  async function getImageBase64(input){
+    return new Promise((resolve,reject)=>{
+      if(input.files.length===0){ resolve(null); return; }
+      const file=input.files[0];
+      const reader=new FileReader();
+      reader.onload=()=>resolve({base64:reader.result.split(',')[1], name:file.name});
+      reader.onerror=err=>reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ================== Popup ==================
+  function showPopup(message, isError){
+    const popup = document.getElementById('formPopup');
+    popup.textContent = message;
+    popup.classList.toggle('error', !!isError);
+    popup.style.display = "block";
+    setTimeout(()=>{popup.style.display='none';}, 3000);
+  }
+
+  function addRippleEffect(e, button, success){
+    const ripple=document.createElement("span");
+    ripple.className="ripple";
+    ripple.style.left=`${e.offsetX}px`;
+    ripple.style.top=`${e.offsetY}px`;
+    button.appendChild(ripple);
+    button.classList.add(success?"success":"error","bounce");
+    setTimeout(()=>{ripple.remove(); button.classList.remove("bounce","success","error");},3000);
+  }
+
+  // ================== Form submission ==================
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.classList.add('loading');
+
+    const vcFront = await getImageBase64(document.getElementById('vcFront'));
+    const vcBack = await getImageBase64(document.getElementById('vcBack'));
+
+    const formData = new FormData(form);
+    if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
+    if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
+
+    let plainData={};
+    formData.forEach((val,key)=>plainData[key]=val);
+
+    if(navigator.onLine){
+      try {
+        const res = await fetch(SCRIPT_URL,{method:'POST',body:formData});
+        const text = await res.text();
+        submitBtn.classList.remove('loading');
+        if(text.includes("SUCCESS")){
+          showPopup("✅ Form submitted successfully!",false);
+          form.reset();
+          form.querySelectorAll('.input-group').forEach(p=>p.classList.remove("filled"));
+          addRippleEffect(e,submitBtn,true);
+        } else {
+          saveOffline({data:plainData,timestamp:Date.now()});
+          showPopup("❌ Form submission failed! Saved offline.",true);
+          addRippleEffect(e,submitBtn,false);
+        }
+      } catch(err){
+        submitBtn.classList.remove('loading');
+        saveOffline({data:plainData,timestamp:Date.now()});
+        showPopup("⚠️ Submission error! Saved offline.",true);
+        console.error(err);
+        addRippleEffect(e,submitBtn,false);
+      }
+    } else {
+      saveOffline({data:plainData,timestamp:Date.now()});
+      submitBtn.classList.remove('loading');
+      showPopup("📩 You are offline. Form saved & will auto-submit later.",false);
+      form.reset();
+      form.querySelectorAll('.input-group').forEach(p=>p.classList.remove("filled"));
+      addRippleEffect(e,submitBtn,true);
+    }
+  });
+
+  if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; }
+  form.querySelectorAll('input,select,textarea').forEach(input=>input.dispatchEvent(new Event('input')));
+});
+</script>
