@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getAll.onsuccess = async () => {
       const uniqueRecords = [];
       const existingHashes = new Set();
+
       for (const record of getAll.result) {
         const hash = JSON.stringify(record.data);
         if(!existingHashes.has(hash)){
@@ -43,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           existingHashes.add(hash);
         }
       }
+
       for (const record of uniqueRecords) {
         try {
           const fd = new FormData();
@@ -53,27 +55,65 @@ document.addEventListener('DOMContentLoaded', async () => {
             store.delete(record.id);
             showPopup("✅ Offline submission synced!", false);
           }
-        } catch (err) { console.error("Resend failed:", err); }
+        } catch (err) {
+          console.error("Resend failed:", err);
+        }
       }
     };
   }
 
   window.addEventListener("online", tryResendData);
 
-  // --- Glow + validation ---
+  // === Glow + Floating label system ===
   form.querySelectorAll('input, select, textarea').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
       if(input.id === "name") input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
       if(input.id === "phone") input.value = input.value.replace(/[^\d+]/g, '');
-      if (["text","email","tel","textarea"].includes(input.type) || input.tagName.toLowerCase()==="textarea") isFilled = input.value.trim() !== "";
+
+      if (["text","email","tel","textarea"].includes(input.type) || input.tagName.toLowerCase()==="textarea") {
+        isFilled = input.value.trim() !== "";
+      }
       if (input.tagName.toLowerCase() === "select") isFilled = input.value !== "";
       if (input.type === "file") isFilled = input.files.length > 0;
+
       input.classList.toggle("glow-success", isFilled);
+
+      // Floating label behavior
+      const label = input.closest(".input-group")?.querySelector("label");
+      if(label){
+        if(isFilled || document.activeElement === input){
+          label.classList.add("float-up");
+        } else {
+          label.classList.remove("float-up");
+        }
+      }
+    });
+
+    input.addEventListener('focus', () => {
+      const label = input.closest(".input-group")?.querySelector("label");
+      if(label) label.classList.add("float-up");
+    });
+    input.addEventListener('blur', () => {
+      const label = input.closest(".input-group")?.querySelector("label");
+      if(label && !input.value.trim()){
+        label.classList.remove("float-up");
+      }
     });
   });
 
-  // --- States & Cities ---
+  // Special handling for remarks/comments
+  const remarks = document.getElementById("remarks");
+  if(remarks){
+    remarks.addEventListener("input", () => {
+      const label = remarks.closest(".input-group")?.querySelector("label");
+      if(remarks.value.trim() !== "" && label){
+        label.classList.add("float-up"); // keep it floated once typed
+      }
+    });
+  }
+
+  // === State / City population ===
   const statesAndCities = {
     "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
     "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
@@ -113,13 +153,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   function populateCountries() {
     const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Other"];
     country.innerHTML = "";
-    countries.forEach(c => country.insertAdjacentHTML('beforeend', `<option value="${c}" ${c==="India"?"selected":""}>${c}</option>`));
+    countries.forEach(c => {
+      country.insertAdjacentHTML('beforeend', `<option value="${c}" ${c==="India"?"selected":""}>${c}</option>`);
+    });
   }
   populateCountries();
 
   function populateStates(){
     state.innerHTML = '<option value="">Select State</option>';
-    for(let st in statesAndCities) state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
+    for(let st in statesAndCities){
+      state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
+    }
     state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
   }
 
@@ -131,31 +175,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   country.addEventListener('change', () => {
     if(country.value === "India"){
-      populateStates(); state.style.display = "block"; city.style.display = "block";
-      otherFields.country.style.display = "none"; otherFields.state.style.display = "none"; otherFields.city.style.display = "none";
+      populateStates();
+      state.style.display = "block";
+      city.style.display = "block";
+      otherFields.country.style.display = "none";
+      otherFields.state.style.display = "none";
+      otherFields.city.style.display = "none";
       city.innerHTML = '<option value="">Select City</option>';
     } else if(country.value === "Other"){
-      otherFields.country.style.display = "block"; state.style.display = "none"; city.style.display = "none";
-      otherFields.state.style.display = "block"; otherFields.city.style.display = "block";
+      otherFields.country.style.display = "block";
+      state.style.display = "none";
+      city.style.display = "none";
+      otherFields.state.style.display = "block";
+      otherFields.city.style.display = "block";
     } else {
-      state.style.display = "none"; city.style.display = "none";
-      otherFields.country.style.display = "none"; otherFields.state.style.display = "none"; otherFields.city.style.display = "none";
+      state.style.display = "none";
+      city.style.display = "none";
+      otherFields.country.style.display = "none";
+      otherFields.state.style.display = "none";
+      otherFields.city.style.display = "none";
     }
   });
 
   state.addEventListener('change', () => {
-    city.innerHTML = '<option value="">Select City</option>'; otherFields.city.style.display = "none";
+    city.innerHTML = '<option value="">Select City</option>';
+    otherFields.city.style.display = "none";
     if(statesAndCities[state.value]){
       statesAndCities[state.value].forEach(ct => city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`));
-      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`); city.style.display = "block";
+      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
+      city.style.display = "block";
     } else if(state.value==="Other"){
-      otherFields.state.style.display = "block"; otherFields.city.style.display = "block";
+      otherFields.state.style.display = "block";
+      otherFields.city.style.display = "block";
     }
   });
 
-  city.addEventListener('change', () => otherFields.city.style.display = (city.value==="Other")?"block":"none");
+  city.addEventListener('change', () => {
+    otherFields.city.style.display = (city.value==="Other")?"block":"none";
+  });
 
-  // --- Geolocation capture ---
+  // === Geolocation ===
   function captureLocation() {
     const latInput = document.getElementById("latitude") || document.createElement("input");
     const lonInput = document.getElementById("longitude") || document.createElement("input");
@@ -165,7 +224,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if("geolocation" in navigator){
       navigator.geolocation.getCurrentPosition(pos=>{
-        latInput.value = pos.coords.latitude; lonInput.value = pos.coords.longitude;
+        latInput.value = pos.coords.latitude;
+        lonInput.value = pos.coords.longitude;
         localStorage.setItem("lastLatitude", pos.coords.latitude);
         localStorage.setItem("lastLongitude", pos.coords.longitude);
       }, err=>{
@@ -175,45 +235,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else console.warn("Location capture failed:", err.message);
       }, {enableHighAccuracy:true, timeout:5000});
     } else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
-      latInput.value = localStorage.getItem("lastLatitude"); lonInput.value = localStorage.getItem("lastLongitude");
+      latInput.value = localStorage.getItem("lastLatitude");
+      lonInput.value = localStorage.getItem("lastLongitude");
     }
   }
-  captureLocation(); setInterval(captureLocation, 30000);
+  captureLocation();
+  setInterval(captureLocation, 30000);
 
-  // --- Image to base64 (no compression) ---
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
       if(input.files.length===0){ resolve(null); return; }
-      const file=input.files[0]; const reader=new FileReader();
+      const file=input.files[0];
+      const reader=new FileReader();
       reader.onload=()=>resolve({base64:reader.result.split(',')[1], name:file.name});
-      reader.onerror=err=>reject(err); reader.readAsDataURL(file);
+      reader.onerror=err=>reject(err);
+      reader.readAsDataURL(file);
     });
   }
 
-  // --- Popup & ripple effects ---
   function showPopup(message, isError){
     const popup = document.getElementById('formPopup');
-    popup.textContent = message; popup.classList.toggle('error', !!isError); popup.style.display = "block";
+    popup.textContent = message;
+    popup.classList.toggle('error', !!isError);
+    popup.style.display = "block";
     setTimeout(()=>{popup.style.display='none';}, 3000);
   }
+
   function addRippleEffect(e, button, success){
-    const ripple=document.createElement("span"); ripple.className="ripple";
-    ripple.style.left=`${e.offsetX}px`; ripple.style.top=`${e.offsetY}px`;
-    button.appendChild(ripple); button.classList.add(success?"success":"error","bounce");
+    const ripple=document.createElement("span");
+    ripple.className="ripple";
+    ripple.style.left=`${e.offsetX}px`;
+    ripple.style.top=`${e.offsetY}px`;
+    button.appendChild(ripple);
+    button.classList.add(success?"success":"error","bounce");
     setTimeout(()=>{ripple.remove(); button.classList.remove("bounce","success","error");},3000);
   }
 
-  // --- Remarks auto-clear ---
-  const remarks = document.getElementById("remarks");
-  if(remarks){
-    const defaultText = remarks.placeholder || "";
-    remarks.addEventListener('focus', () => { if(remarks.value === defaultText) remarks.value=""; remarks.classList.remove("glow-success"); });
-    remarks.addEventListener('blur', () => { if(remarks.value.trim()==="") remarks.value=""; });
-  }
-
-  // --- Form submit ---
+  // === Form submission ===
   form.addEventListener('submit', async e=>{
-    e.preventDefault(); const submitBtn = form.querySelector('button[type="submit"]'); submitBtn.classList.add('loading');
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.classList.add('loading');
 
     const vcFront = await getImageBase64(document.getElementById('vcFront'));
     const vcBack = await getImageBase64(document.getElementById('vcBack'));
@@ -222,33 +284,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    let plainData={}; formData.forEach((val,key)=>plainData[key]=val);
+    let plainData={};
+    formData.forEach((val,key)=>plainData[key]=val);
 
     if(navigator.onLine){
       try {
         const res = await fetch(SCRIPT_URL,{method:'POST',body:formData});
-        const text = await res.text(); submitBtn.classList.remove('loading');
+        const text = await res.text();
+        submitBtn.classList.remove('loading');
         if(text.includes("SUCCESS")){
           showPopup("✅ Form submitted successfully!",false);
-          form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
+          form.reset();
+          form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
           addRippleEffect(e,submitBtn,true);
         } else {
           saveOffline({data:plainData,timestamp:Date.now()});
-          showPopup("❌ Form submission failed! Saved offline.",true); addRippleEffect(e,submitBtn,false);
+          showPopup("❌ Form submission failed! Saved offline.",true);
+          addRippleEffect(e,submitBtn,false);
         }
       } catch(err){
-        submitBtn.classList.remove('loading'); saveOffline({data:plainData,timestamp:Date.now()});
-        showPopup("⚠️ Submission error! Saved offline.",true); console.error(err); addRippleEffect(e,submitBtn,false);
+        submitBtn.classList.remove('loading');
+        saveOffline({data:plainData,timestamp:Date.now()});
+        showPopup("⚠️ Submission error! Saved offline.",true);
+        console.error(err);
+        addRippleEffect(e,submitBtn,false);
       }
     } else {
-      saveOffline({data:plainData,timestamp:Date.now()}); submitBtn.classList.remove('loading');
+      saveOffline({data:plainData,timestamp:Date.now()});
+      submitBtn.classList.remove('loading');
       showPopup("📩 You are offline. Form saved & will auto-submit later.",false);
-      form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
+      form.reset();
+      form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
       addRippleEffect(e,submitBtn,true);
     }
-
-    // Clear remarks after submission
-    if(remarks) remarks.value="";
   });
 
   if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; }
