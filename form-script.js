@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec";
 
   // fields that can have an "Other" input
-  const fields = ["designation","country","state","city","business"];
+  const fields = ["","country","state","city","business"];
   const otherFields = {
     designation: document.getElementById('designationOther'),
     country: document.getElementById('countryOther'),
@@ -725,3 +725,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* =========================================================================
    End of script.js
    ========================================================================= */
+
