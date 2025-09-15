@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('customerForm');
-  const res = await fetch("https://script.google.com/macros/s/AKfycbzVfU7k_OJRTSXNdHARM3JMyzBQkfMY9OxqD0_ECpVovUsNTgD98P63Ipcr8B5ZzLTU6Q/exec", { method: "POST", body: fd });
+  const res = await fetch("https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec", { method: "POST", body: fd });
 
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
@@ -300,4 +300,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   form.querySelectorAll('input, select, textarea').forEach(input=> input.dispatchEvent(new Event('input')));
 });
+
 
