@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUeEwhUrglj58LQ9D8eR5IzCaLgrSoqJF-AFsCZlXhD91HuQoPvi8Q04w5-R6N182Eag/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec";
 
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     getAll.onsuccess = async () => {
       const uniqueRecords = [];
       const existingHashes = new Set();
-
       for (const record of getAll.result) {
         const hash = JSON.stringify(record.data);
         if(!existingHashes.has(hash)){
@@ -51,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           existingHashes.add(hash);
         }
       }
-
       for (const record of uniqueRecords) {
         try {
           const fd = new FormData();
@@ -62,29 +60,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             store.delete(record.id);
             showPopup("✅ Offline submission synced!", false);
           }
-        } catch (err) {
-          console.error("Resend failed:", err);
-        }
+        } catch (err) { console.error("Resend failed:", err); }
       }
     };
   }
-
   window.addEventListener("online", tryResendData);
 
   // --- Glow + validation ---
-  form.querySelectorAll('input, select, textarea').forEach(input => {
+  const inputs = form.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
     input.addEventListener('input', () => {
-      let isFilled = false;
-      if(input.id === "name") input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
-      if(input.id === "phone") input.value = input.value.replace(/[^\d+]/g, '');
-      if (["text","email","tel","textarea"].includes(input.type) || input.tagName.toLowerCase()==="textarea") {
-        isFilled = input.value.trim() !== "";
-      }
-      if (input.tagName.toLowerCase() === "select") isFilled = input.value !== "";
-      if (input.type === "file") isFilled = input.files.length > 0;
-      input.classList.toggle("glow-success", isFilled);
+      let filled = false;
+      if(input.id==="name") input.value=input.value.replace(/[^a-zA-Z\s]/g,'');
+      if(input.id==="phone") input.value=input.value.replace(/[^\d+]/g,'');
+      if(["text","email","tel","textarea"].includes(input.type) || input.tagName.toLowerCase()==="textarea")
+        filled=input.value.trim()!=="";
+      if(input.tagName.toLowerCase()==="select") filled=input.value!=="";
+      if(input.type==="file") filled=input.files.length>0;
+      input.classList.toggle("glow-success", filled);
     });
   });
+
+  // --- Remarks auto-clear ---
+  const remarks = document.getElementById("remarks");
+  if(remarks){
+    remarks.addEventListener('focus', ()=>{ remarks.value=""; remarks.classList.remove("glow-success"); });
+  }
 
   // --- States & Cities ---
   const statesAndCities = {
@@ -123,188 +124,132 @@ document.addEventListener('DOMContentLoaded', async () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  function populateCountries() {
-    const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Other"];
-    country.innerHTML = "";
-    countries.forEach(c => {
-      country.insertAdjacentHTML('beforeend', `<option value="${c}" ${c==="India"?"selected":""}>${c}</option>`);
-    });
+  function populateCountries(){
+    const countries=["India","United States","United Kingdom","Canada","Australia","Other"];
+    country.innerHTML="";
+    countries.forEach(c=>country.insertAdjacentHTML('beforeend',`<option value="${c}" ${c==="India"?"selected":""}>${c}</option>`));
   }
   populateCountries();
 
   function populateStates(){
-    state.innerHTML = '<option value="">Select State</option>';
-    for(let st in statesAndCities){
-      state.insertAdjacentHTML('beforeend', `<option value="${st}">${st}</option>`);
-    }
-    state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
+    state.innerHTML='<option value="">Select State</option>';
+    for(let st in statesAndCities) state.insertAdjacentHTML('beforeend',`<option value="${st}">${st}</option>`);
+    state.insertAdjacentHTML('beforeend',`<option value="Other">Other</option>`);
   }
 
-  fields.forEach(f => {
-    document.getElementById(f).addEventListener('change', () => {
-      otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
+  fields.forEach(f=>{
+    document.getElementById(f).addEventListener('change',()=>{
+      otherFields[f].style.display=(document.getElementById(f).value==="Other")?"block":"none";
     });
   });
 
-  country.addEventListener('change', () => {
-    if(country.value === "India"){
-      populateStates();
-      state.style.display = "block";
-      city.style.display = "block";
-      otherFields.country.style.display = "none";
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
-      city.innerHTML = '<option value="">Select City</option>';
-    } else if(country.value === "Other"){
-      otherFields.country.style.display = "block";
-      state.style.display = "none";
-      city.style.display = "none";
-      otherFields.state.style.display = "block";
-      otherFields.city.style.display = "block";
+  country.addEventListener('change',()=>{
+    if(country.value==="India"){
+      populateStates(); state.style.display="block"; city.style.display="block";
+      otherFields.country.style.display="none"; otherFields.state.style.display="none"; otherFields.city.style.display="none";
+      city.innerHTML='<option value="">Select City</option>';
+    } else if(country.value==="Other"){
+      otherFields.country.style.display="block"; state.style.display="none"; city.style.display="none";
+      otherFields.state.style.display="block"; otherFields.city.style.display="block";
     } else {
-      state.style.display = "none";
-      city.style.display = "none";
-      otherFields.country.style.display = "none";
-      otherFields.state.style.display = "none";
-      otherFields.city.style.display = "none";
+      state.style.display="none"; city.style.display="none";
+      otherFields.country.style.display="none"; otherFields.state.style.display="none"; otherFields.city.style.display="none";
     }
   });
 
-  state.addEventListener('change', () => {
-    city.innerHTML = '<option value="">Select City</option>';
-    otherFields.city.style.display = "none";
+  state.addEventListener('change',()=>{
+    city.innerHTML='<option value="">Select City</option>'; otherFields.city.style.display="none";
     if(statesAndCities[state.value]){
-      statesAndCities[state.value].forEach(ct => city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`));
-      city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-      city.style.display = "block";
-    } else if(state.value==="Other"){
-      otherFields.state.style.display = "block";
-      otherFields.city.style.display = "block";
-    }
+      statesAndCities[state.value].forEach(ct=>city.insertAdjacentHTML('beforeend',`<option value="${ct}">${ct}</option>`));
+      city.insertAdjacentHTML('beforeend','<option value="Other">Other</option>'); city.style.display="block";
+    } else if(state.value==="Other"){ otherFields.state.style.display="block"; otherFields.city.style.display="block"; }
   });
 
-  city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value==="Other")?"block":"none";
-  });
+  city.addEventListener('change',()=>{ otherFields.city.style.display=(city.value==="Other")?"block":"none"; });
 
   // --- Geolocation ---
-  function captureLocation() {
-    const latInput = document.getElementById("latitude") || document.createElement("input");
-    const lonInput = document.getElementById("longitude") || document.createElement("input");
+  function captureLocation(){
+    const latInput=document.getElementById("latitude")||document.createElement("input");
+    const lonInput=document.getElementById("longitude")||document.createElement("input");
     latInput.type="hidden"; latInput.id="latitude"; latInput.name="latitude";
     lonInput.type="hidden"; lonInput.id="longitude"; lonInput.name="longitude";
     form.appendChild(latInput); form.appendChild(lonInput);
-
     if("geolocation" in navigator){
       navigator.geolocation.getCurrentPosition(pos=>{
-        latInput.value = pos.coords.latitude;
-        lonInput.value = pos.coords.longitude;
-        localStorage.setItem("lastLatitude", pos.coords.latitude);
-        localStorage.setItem("lastLongitude", pos.coords.longitude);
+        latInput.value=pos.coords.latitude; lonInput.value=pos.coords.longitude;
+        localStorage.setItem("lastLatitude",pos.coords.latitude); localStorage.setItem("lastLongitude",pos.coords.longitude);
       }, err=>{
         if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
-          latInput.value = localStorage.getItem("lastLatitude");
-          lonInput.value = localStorage.getItem("lastLongitude");
+          latInput.value=localStorage.getItem("lastLatitude");
+          lonInput.value=localStorage.getItem("lastLongitude");
         } else console.warn("Location capture failed:", err.message);
-      }, {enableHighAccuracy:true, timeout:5000});
+      },{enableHighAccuracy:true,timeout:5000});
     } else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
-      latInput.value = localStorage.getItem("lastLatitude");
-      lonInput.value = localStorage.getItem("lastLongitude");
+      latInput.value=localStorage.getItem("lastLatitude"); lonInput.value=localStorage.getItem("lastLongitude");
     }
   }
-  captureLocation();
-  setInterval(captureLocation, 30000);
+  captureLocation(); setInterval(captureLocation,30000);
 
-  // --- Image resize & Base64 ---
+  // --- Image Base64 without compression ---
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
       if(input.files.length===0){ resolve(null); return; }
       const file=input.files[0];
       const reader=new FileReader();
-      reader.onload=()=>{
-        const img=new Image();
-        img.src=reader.result;
-        img.onload=()=>{
-          const canvas=document.createElement("canvas");
-          const maxDim=800;
-          let width=img.width, height=img.height;
-          if(width>height && width>maxDim){ height*=maxDim/width; width=maxDim; }
-          else if(height>width && height>maxDim){ width*=maxDim/height; height=maxDim; }
-          else if(width>maxDim && height>maxDim){ width=maxDim; height=maxDim; }
-          canvas.width=width; canvas.height=height;
-          const ctx=canvas.getContext("2d");
-          ctx.drawImage(img,0,0,width,height);
-          resolve({base64:canvas.toDataURL("image/jpeg",0.8).split(',')[1], name:file.name});
-        };
-      };
+      reader.onload=()=>resolve({base64:reader.result.split(',')[1], name:file.name});
       reader.onerror=err=>reject(err);
       reader.readAsDataURL(file);
     });
   }
 
   // --- Popup & ripple ---
-  function showPopup(message, isError){
-    const popup = document.getElementById('formPopup');
-    popup.textContent = message;
-    popup.classList.toggle('error', !!isError);
-    popup.style.display = "block";
-    setTimeout(()=>{popup.style.display='none';}, 3000);
+  function showPopup(message,isError){
+    const popup=document.getElementById('formPopup');
+    popup.textContent=message; popup.classList.toggle('error',!!isError);
+    popup.style.display="block"; setTimeout(()=>{popup.style.display='none';},3000);
   }
-  function addRippleEffect(e, button, success){
-    const ripple=document.createElement("span");
-    ripple.className="ripple";
-    ripple.style.left=`${e.offsetX}px`;
-    ripple.style.top=`${e.offsetY}px`;
-    button.appendChild(ripple);
-    button.classList.add(success?"success":"error","bounce");
+  function addRippleEffect(e,button,success){
+    const ripple=document.createElement("span"); ripple.className="ripple";
+    ripple.style.left=`${e.offsetX}px`; ripple.style.top=`${e.offsetY}px`;
+    button.appendChild(ripple); button.classList.add(success?"success":"error","bounce");
     setTimeout(()=>{ripple.remove(); button.classList.remove("bounce","success","error");},3000);
   }
 
-  // --- Form submit ---
-  form.addEventListener('submit', async e=>{
+  // --- Submit event ---
+  form.addEventListener('submit',async e=>{
     e.preventDefault();
-    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn=form.querySelector('button[type="submit"]');
     submitBtn.classList.add('loading');
 
-    const vcFront = await getImageBase64(document.getElementById('vcFront'));
-    const vcBack = await getImageBase64(document.getElementById('vcBack'));
+    const vcFront=await getImageBase64(document.getElementById('vcFront'));
+    const vcBack=await getImageBase64(document.getElementById('vcBack'));
 
-    const formData = new FormData(form);
-    if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
-    if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
+    const formData=new FormData(form);
+    if(vcFront){ formData.append('vcFrontBase64',vcFront.base64); formData.append('vcFrontName',vcFront.name); }
+    if(vcBack){ formData.append('vcBackBase64',vcBack.base64); formData.append('vcBackName',vcBack.name); }
 
-    // --- Plain object for offline save ---
-    let plainData={};
-    formData.forEach((val,key)=>plainData[key]=val);
+    let plainData={}; formData.forEach((val,key)=>plainData[key]=val);
 
     if(navigator.onLine){
-      try {
-        const res = await fetch(SCRIPT_URL,{method:'POST',body:formData});
-        const text = await res.text();
-        submitBtn.classList.remove('loading');
+      try{
+        const res=await fetch(SCRIPT_URL,{method:'POST',body:formData});
+        const text=await res.text(); submitBtn.classList.remove('loading');
         if(text.includes("SUCCESS")){
           showPopup("✅ Form submitted successfully!",false);
-          form.reset();
-          form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
+          form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
           addRippleEffect(e,submitBtn,true);
-        } else {
+        } else{
           saveOffline(plainData);
-          showPopup("❌ Form submission failed! Saved offline.",true);
-          addRippleEffect(e,submitBtn,false);
+          showPopup("❌ Form submission failed! Saved offline.",true); addRippleEffect(e,submitBtn,false);
         }
       } catch(err){
-        submitBtn.classList.remove('loading');
-        saveOffline(plainData);
-        showPopup("⚠️ Submission error! Saved offline.",true);
-        console.error(err);
-        addRippleEffect(e,submitBtn,false);
+        submitBtn.classList.remove('loading'); saveOffline(plainData);
+        showPopup("⚠️ Submission error! Saved offline.",true); console.error(err); addRippleEffect(e,submitBtn,false);
       }
-    } else {
-      saveOffline(plainData);
-      submitBtn.classList.remove('loading');
+    } else{
+      saveOffline(plainData); submitBtn.classList.remove('loading');
       showPopup("📩 You are offline. Form saved & will auto-submit later.",false);
-      form.reset();
-      form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
+      form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
       addRippleEffect(e,submitBtn,true);
     }
   });
@@ -312,4 +257,3 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; }
   form.querySelectorAll('input,select,textarea').forEach(input=>input.dispatchEvent(new Event('input')));
 });
-
