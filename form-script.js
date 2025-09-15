@@ -21,12 +21,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   request.onsuccess = e => { db = e.target.result; tryResendData(); };
   request.onerror = e => console.error("IndexedDB error:", e);
 
+  // --- Save offline with duplicate prevention ---
   function saveOffline(data) {
     if(!db) return;
     const tx = db.transaction("submissions", "readwrite");
-    tx.objectStore("submissions").add(data);
+    const store = tx.objectStore("submissions");
+    const hash = JSON.stringify(data);
+    store.getAll().onsuccess = evt => {
+      const exists = evt.target.result.some(r => JSON.stringify(r.data) === hash);
+      if(!exists) store.add({data, timestamp:Date.now()});
+    };
   }
 
+  // --- Resend offline submissions ---
   async function tryResendData() {
     if (!navigator.onLine || !db) return;
     const tx = db.transaction("submissions", "readwrite");
@@ -38,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const existingHashes = new Set();
 
       for (const record of getAll.result) {
-        // Create a hash of the data to detect duplicates
         const hash = JSON.stringify(record.data);
         if(!existingHashes.has(hash)){
           uniqueRecords.push(record);
@@ -65,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.addEventListener("online", tryResendData);
 
-  // Glow + validation
+  // --- Glow + validation ---
   form.querySelectorAll('input, select, textarea').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
@@ -80,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // States & Cities
+  // --- States & Cities ---
   const statesAndCities = {
     "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
     "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
@@ -181,6 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     otherFields.city.style.display = (city.value==="Other")?"block":"none";
   });
 
+  // --- Geolocation ---
   function captureLocation() {
     const latInput = document.getElementById("latitude") || document.createElement("input");
     const lonInput = document.getElementById("longitude") || document.createElement("input");
@@ -208,17 +215,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   captureLocation();
   setInterval(captureLocation, 30000);
 
+  // --- Image resize & Base64 ---
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
       if(input.files.length===0){ resolve(null); return; }
       const file=input.files[0];
       const reader=new FileReader();
-      reader.onload=()=>resolve({base64:reader.result.split(',')[1], name:file.name});
+      reader.onload=()=>{
+        const img=new Image();
+        img.src=reader.result;
+        img.onload=()=>{
+          const canvas=document.createElement("canvas");
+          const maxDim=800;
+          let width=img.width, height=img.height;
+          if(width>height && width>maxDim){ height*=maxDim/width; width=maxDim; }
+          else if(height>width && height>maxDim){ width*=maxDim/height; height=maxDim; }
+          else if(width>maxDim && height>maxDim){ width=maxDim; height=maxDim; }
+          canvas.width=width; canvas.height=height;
+          const ctx=canvas.getContext("2d");
+          ctx.drawImage(img,0,0,width,height);
+          resolve({base64:canvas.toDataURL("image/jpeg",0.8).split(',')[1], name:file.name});
+        };
+      };
       reader.onerror=err=>reject(err);
       reader.readAsDataURL(file);
     });
   }
 
+  // --- Popup & ripple ---
   function showPopup(message, isError){
     const popup = document.getElementById('formPopup');
     popup.textContent = message;
@@ -226,7 +250,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     popup.style.display = "block";
     setTimeout(()=>{popup.style.display='none';}, 3000);
   }
-
   function addRippleEffect(e, button, success){
     const ripple=document.createElement("span");
     ripple.className="ripple";
@@ -237,6 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(()=>{ripple.remove(); button.classList.remove("bounce","success","error");},3000);
   }
 
+  // --- Form submit ---
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -249,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    // --- Prepare plain data for offline save ---
+    // --- Plain object for offline save ---
     let plainData={};
     formData.forEach((val,key)=>plainData[key]=val);
 
@@ -264,19 +288,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
           addRippleEffect(e,submitBtn,true);
         } else {
-          saveOffline({data:plainData,timestamp:Date.now()});
+          saveOffline(plainData);
           showPopup("❌ Form submission failed! Saved offline.",true);
           addRippleEffect(e,submitBtn,false);
         }
       } catch(err){
         submitBtn.classList.remove('loading');
-        saveOffline({data:plainData,timestamp:Date.now()});
+        saveOffline(plainData);
         showPopup("⚠️ Submission error! Saved offline.",true);
         console.error(err);
         addRippleEffect(e,submitBtn,false);
       }
     } else {
-      saveOffline({data:plainData,timestamp:Date.now()});
+      saveOffline(plainData);
       submitBtn.classList.remove('loading');
       showPopup("📩 You are offline. Form saved & will auto-submit later.",false);
       form.reset();
