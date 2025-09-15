@@ -34,7 +34,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const getAll = store.getAll();
 
     getAll.onsuccess = async () => {
+      const uniqueRecords = [];
+      const existingHashes = new Set();
+
       for (const record of getAll.result) {
+        // Create a hash of the data to detect duplicates
+        const hash = JSON.stringify(record.data);
+        if(!existingHashes.has(hash)){
+          uniqueRecords.push(record);
+          existingHashes.add(hash);
+        }
+      }
+
+      for (const record of uniqueRecords) {
         try {
           const fd = new FormData();
           for (let k in record.data) fd.append(k, record.data[k]);
@@ -57,12 +69,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   form.querySelectorAll('input, select, textarea').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
-      if(input.id === "name"){
-        input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
-      }
-      if(input.id === "phone"){
-        input.value = input.value.replace(/[^\d+]/g, '');
-      }
+      if(input.id === "name") input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+      if(input.id === "phone") input.value = input.value.replace(/[^\d+]/g, '');
       if (["text","email","tel","textarea"].includes(input.type) || input.tagName.toLowerCase()==="textarea") {
         isFilled = input.value.trim() !== "";
       }
@@ -241,29 +249,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
+    // --- Prepare plain data for offline save ---
+    let plainData={};
+    formData.forEach((val,key)=>plainData[key]=val);
+
     if(navigator.onLine){
-      fetch(SCRIPT_URL,{method:'POST',body:formData})
-      .then(res=>res.text())
-      .then(msg=>{
+      try {
+        const res = await fetch(SCRIPT_URL,{method:'POST',body:formData});
+        const text = await res.text();
         submitBtn.classList.remove('loading');
-        if(msg.includes("SUCCESS")){
+        if(text.includes("SUCCESS")){
           showPopup("✅ Form submitted successfully!",false);
           form.reset();
           form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
           addRippleEffect(e,submitBtn,true);
         } else {
-          showPopup("❌ Form submission failed!",true);
+          saveOffline({data:plainData,timestamp:Date.now()});
+          showPopup("❌ Form submission failed! Saved offline.",true);
           addRippleEffect(e,submitBtn,false);
         }
-      }).catch(err=>{
+      } catch(err){
         submitBtn.classList.remove('loading');
-        showPopup("⚠️ Submission error!",true);
+        saveOffline({data:plainData,timestamp:Date.now()});
+        showPopup("⚠️ Submission error! Saved offline.",true);
         console.error(err);
         addRippleEffect(e,submitBtn,false);
-      });
+      }
     } else {
-      let plainData={};
-      formData.forEach((val,key)=>plainData[key]=val);
       saveOffline({data:plainData,timestamp:Date.now()});
       submitBtn.classList.remove('loading');
       showPopup("📩 You are offline. Form saved & will auto-submit later.",false);
