@@ -157,11 +157,13 @@ body {
   padding: 0 6px;
 }
 
-/* Lift label */
+/* Lift label when field is focused OR has text */
 .input-container input:focus + label,
 .input-container input:not(:placeholder-shown) + label,
 .input-container select:focus + label,
-.input-container textarea:focus + label {
+.input-container select:valid + label,
+.input-container textarea:focus + label,
+.input-container textarea:not(:placeholder-shown) + label {
   top: -10px;
   left: 12px;
   font-size:12.5px;
