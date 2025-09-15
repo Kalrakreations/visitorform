@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const form = document.getElementById('customerForm');
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec";
 
-  // Fields that have "Other" option
+  // ---------- Fields & "Other" Inputs ----------
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
     designation: document.getElementById('designationOther'),
@@ -74,8 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         label.style.color = "#999";
         label.style.fontSize = "1rem";
         input.style.paddingTop = "1.8rem";
-        input.style.marginBottom = "2rem";
+        input.style.marginBottom = "2.5rem"; // slightly increased spacing
       }
+
       function updateLabel(){
         if(input.value.trim() !== "" || document.activeElement === input){
           if(label){
@@ -91,6 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
       }
+
       input.addEventListener('input', () => {
         let isFilled = false;
         if(input.id==="name") input.value = input.value.replace(/[^a-zA-Z\s]/g,'');
@@ -160,111 +162,88 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   fields.forEach(f => {
     const el = document.getElementById(f);
-    el.addEventListener('change', () => {
-      otherFields[f].style.display = (el.value==="Other")?"block":"none";
-    });
+    el.addEventListener('change', () => { otherFields[f].style.display = (el.value==="Other")?"block":"none"; });
   });
 
   country.addEventListener('change', () => {
     if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; otherFields.country.style.display="none"; otherFields.state.style.display="none"; otherFields.city.style.display="none"; city.innerHTML='<option value="">Select City</option>'; }
     else if(country.value==="Other"){ otherFields.country.style.display="block"; state.style.display="none"; city.style.display="none"; otherFields.state.style.display="block"; otherFields.city.style.display="block"; }
-    else { state.style.display="none"; city.style.display="none"; otherFields.country.style.display="none"; otherFields.state.style.display="none"; otherFields.city.style.display="none"; }
+    else{ state.style.display="none"; city.style.display="none"; otherFields.country.style.display="none"; otherFields.state.style.display="none"; otherFields.city.style.display="none"; }
   });
 
   state.addEventListener('change', () => {
     city.innerHTML='<option value="">Select City</option>'; otherFields.city.style.display="none";
-    if(statesAndCities[state.value]){
-      statesAndCities[state.value].forEach(ct=>city.insertAdjacentHTML('beforeend',`<option value="${ct}">${ct}</option>`));
-      city.insertAdjacentHTML('beforeend',`<option value="Other">Other</option>`); city.style.display="block";
-    } else if(state.value==="Other"){ otherFields.state.style.display="block"; otherFields.city.style.display="block"; }
+    if(statesAndCities[state.value]){ statesAndCities[state.value].forEach(ct => city.insertAdjacentHTML('beforeend',`<option value="${ct}">${ct}</option>`)); city.insertAdjacentHTML('beforeend',`<option value="Other">Other</option>`); city.style.display="block"; }
+    else if(state.value==="Other"){ otherFields.state.style.display="block"; otherFields.city.style.display="block"; }
   });
-
-  city.addEventListener('change', () => { otherFields.city.style.display=(city.value==="Other")?"block":"none"; });
+  city.addEventListener('change', () => otherFields.city.style.display = (city.value==="Other")?"block":"none");
 
   // ---------- Geolocation ----------
   function captureLocation(){
-    let latInput=document.getElementById("latitude") || document.createElement("input");
-    let lonInput=document.getElementById("longitude") || document.createElement("input");
+    const latInput = document.getElementById("latitude") || document.createElement("input");
+    const lonInput = document.getElementById("longitude") || document.createElement("input");
     latInput.type="hidden"; latInput.id="latitude"; latInput.name="latitude";
     lonInput.type="hidden"; lonInput.id="longitude"; lonInput.name="longitude";
-    if(!form.contains(latInput)) form.appendChild(latInput);
-    if(!form.contains(lonInput)) form.appendChild(lonInput);
-
-    if("geolocation" in navigator){
-      navigator.geolocation.getCurrentPosition(pos=>{
-        latInput.value=pos.coords.latitude; lonInput.value=pos.coords.longitude;
-        localStorage.setItem("lastLatitude", pos.coords.latitude);
-        localStorage.setItem("lastLongitude", pos.coords.longitude);
-      }, err=>{
-        if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
-          latInput.value=localStorage.getItem("lastLatitude"); lonInput.value=localStorage.getItem("lastLongitude");
-        } else console.warn("Location capture failed:", err.message);
-      }, {enableHighAccuracy:true, timeout:5000});
-    } else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
-      latInput.value=localStorage.getItem("lastLatitude"); lonInput.value=localStorage.getItem("lastLongitude");
-    }
+    form.appendChild(latInput); form.appendChild(lonInput);
+    if("geolocation" in navigator){ navigator.geolocation.getCurrentPosition(pos=>{ latInput.value=pos.coords.latitude; lonInput.value=pos.coords.longitude; localStorage.setItem("lastLatitude",pos.coords.latitude); localStorage.setItem("lastLongitude",pos.coords.longitude); }, err=>{ if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){ latInput.value=localStorage.getItem("lastLatitude"); lonInput.value=localStorage.getItem("lastLongitude"); } else console.warn("Location capture failed:", err.message); }, {enableHighAccuracy:true, timeout:5000}); }
+    else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){ latInput.value=localStorage.getItem("lastLatitude"); lonInput.value=localStorage.getItem("lastLongitude"); }
   }
   captureLocation(); setInterval(captureLocation,30000);
 
-  // ---------- Image Upload ----------
+  // ---------- Image Base64 ----------
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
       if(input.files.length===0){ resolve(null); return; }
       const file=input.files[0]; const reader=new FileReader();
-      reader.onload=()=>resolve({base64:reader.result.split(',')[1],name:file.name});
+      reader.onload=()=>resolve({base64:reader.result.split(',')[1], name:file.name});
       reader.onerror=err=>reject(err); reader.readAsDataURL(file);
     });
   }
 
   // ---------- Popup & Ripple ----------
-  function showPopup(msg,isError){
-    const popup=document.getElementById('formPopup'); popup.textContent=msg; popup.classList.toggle('error',!!isError); popup.style.display="block";
-    setTimeout(()=>{popup.style.display='none';},3000);
-  }
-  function addRipple(e,btn,success){
-    const ripple=document.createElement("span"); ripple.className="ripple";
-    ripple.style.left=`${e.offsetX}px`; ripple.style.top=`${e.offsetY}px`;
-    btn.appendChild(ripple); btn.classList.add(success?"success":"error","bounce");
-    setTimeout(()=>{ripple.remove(); btn.classList.remove("bounce","success","error");},3000);
-  }
+  function showPopup(msg, isErr){ const popup=document.getElementById('formPopup'); popup.textContent=msg; popup.classList.toggle('error',!!isErr); popup.style.display="block"; setTimeout(()=>{popup.style.display='none';},3000); }
+  function addRippleEffect(e,btn,success){ const ripple=document.createElement("span"); ripple.className="ripple"; ripple.style.left=`${e.offsetX}px`; ripple.style.top=`${e.offsetY}px`; btn.appendChild(ripple); btn.classList.add(success?"success":"error","bounce"); setTimeout(()=>{ripple.remove(); btn.classList.remove("bounce","success","error");},3000); }
 
-  // ---------- Remarks Floating ----------
-  const remarks=document.getElementById("remarks");
+  // ---------- Remarks ----------
+  const remarks = document.getElementById("remarks");
   if(remarks){
-    remarks.addEventListener('focus',()=>{ remarks.classList.add("active"); });
-    remarks.addEventListener('input',()=>{ remarks.classList.add("active"); });
-    remarks.addEventListener('blur',()=>{ if(remarks.value.trim()==="") remarks.classList.remove("active"); });
+    const defaultText = remarks.placeholder || "";
+    remarks.addEventListener('focus', ()=>{ if(remarks.value===defaultText) remarks.value=""; remarks.classList.remove("glow-success"); });
+    remarks.addEventListener('blur', ()=>{ if(remarks.value.trim()==="") remarks.value=""; });
   }
 
   // ---------- Form Submit ----------
   form.addEventListener('submit', async e=>{
-    e.preventDefault();
-    const submitBtn=form.querySelector('button[type="submit"]'); submitBtn.classList.add('loading');
-
-    const vcFront=await getImageBase64(document.getElementById('vcFront'));
-    const vcBack=await getImageBase64(document.getElementById('vcBack'));
-
-    const formData=new FormData(form);
-    if(vcFront){ formData.append('vcFrontBase64',vcFront.base64); formData.append('vcFrontName',vcFront.name); }
-    if(vcBack){ formData.append('vcBackBase64',vcBack.base64); formData.append('vcBackName',vcBack.name); }
-
-    let plainData={}; formData.forEach((val,key)=>plainData[key]=val);
-
+    e.preventDefault(); const submitBtn=form.querySelector('button[type="submit"]'); submitBtn.classList.add('loading');
+    const vcFront = await getImageBase64(document.getElementById('vcFront')); const vcBack = await getImageBase64(document.getElementById('vcBack'));
+    const formData = new FormData(form); if(vcFront){ formData.append('vcFrontBase64',vcFront.base64); formData.append('vcFrontName',vcFront.name); } if(vcBack){ formData.append('vcBackBase64',vcBack.base64); formData.append('vcBackName',vcBack.name); }
+    let plainData={}; formData.forEach((v,k)=>plainData[k]=v);
     if(navigator.onLine){
-      try{
-        const res=await fetch(SCRIPT_URL,{method:'POST',body:formData});
-        const text=await res.text(); submitBtn.classList.remove('loading');
-        if(text.includes("SUCCESS")){
-          showPopup("✅ Form submitted successfully!",false);
-          form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); addRipple(e,submitBtn,true);
-          if(remarks) remarks.classList.remove("active");
-        } else { saveOffline({data:plainData,timestamp:Date.now()}); showPopup("❌ Form submission failed! Saved offline.",true); addRipple(e,submitBtn,false); }
-      } catch(err){ submitBtn.classList.remove('loading'); saveOffline({data:plainData,timestamp:Date.now()}); showPopup("⚠️ Submission error! Saved offline.",true); console.error(err); addRipple(e,submitBtn,false); }
-    } else { saveOffline({data:plainData,timestamp:Date.now()}); submitBtn.classList.remove('loading'); showPopup("📩 Offline. Saved & will auto-submit later.",false); form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); addRipple(e,submitBtn,true); if(remarks) remarks.classList.remove("active"); }
-
-    form.querySelectorAll('input,select,textarea').forEach(i=>i.dispatchEvent(new Event('input')));
+      try{ const res=await fetch(SCRIPT_URL,{method:'POST',body:formData}); const text=await res.text(); submitBtn.classList.remove('loading'); if(text.includes("SUCCESS")){ showPopup("✅ Form submitted successfully!",false); form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); addRippleEffect(e,submitBtn,true); } else{ saveOffline({data:plainData,timestamp:Date.now()}); showPopup("❌ Form submission failed! Saved offline.",true); addRippleEffect(e,submitBtn,false); } } catch(err){ submitBtn.classList.remove('loading'); saveOffline({data:plainData,timestamp:Date.now()}); showPopup("⚠️ Submission error! Saved offline.",true); console.error(err); addRippleEffect(e,submitBtn,false); }
+    } else{ saveOffline({data:plainData,timestamp:Date.now()}); submitBtn.classList.remove('loading'); showPopup("📩 You are offline. Form saved & will auto-submit later.",false); form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); addRippleEffect(e,submitBtn,true); }
+    if(remarks) remarks.value="";
   });
 
   if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; }
   form.querySelectorAll('input,select,textarea').forEach(i=>i.dispatchEvent(new Event('input')));
+
+  // ---------- Mobile Responsiveness ----------
+  function adjustForMobile(){
+    const inputs = form.querySelectorAll('input,textarea,select');
+    inputs.forEach(input=>{
+      if(window.innerWidth<600){
+        input.style.paddingTop = "2rem";
+        input.style.marginBottom = "3rem"; // extra spacing for small screens
+        const label = document.querySelector(`label[for="${input.id}"]`);
+        if(label) label.style.fontSize="0.8rem";
+      } else {
+        input.style.paddingTop = "1.8rem";
+        input.style.marginBottom = "2.5rem";
+        const label = document.querySelector(`label[for="${input.id}"]`);
+        if(label) label.style.fontSize="1rem";
+      }
+    });
+  }
+  window.addEventListener('resize', adjustForMobile);
+  adjustForMobile();
 });
