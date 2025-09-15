@@ -590,6 +590,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     sync();
   })();
 
+   // ===================================================
+// Update <meta name="theme-color"> dynamically
+// ===================================================
+function updateThemeColor(theme) {
+  const metaThemeColor = document.querySelector("meta[name=theme-color]");
+  if (!metaThemeColor) return;
+
+  if (theme === "dark") {
+    metaThemeColor.setAttribute("content", "#121212");  // Dark background
+  } else {
+    metaThemeColor.setAttribute("content", "#007bff");  // Light mode accent
+  }
+}
+
+// Run on load
+updateThemeColor(localStorage.getItem("theme") || "light");
+
+// Run on toggle
+toggle.addEventListener("change", () => {
+  const theme = toggle.checked ? "dark" : "light";
+  updateThemeColor(theme);
+});
+
   // ========================================================================
   // FORM SUBMISSION FLOW (PRESERVE ORIGINAL FIELDS & LOGIC)
   // - improved button handling and success text
@@ -725,5 +748,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* =========================================================================
    End of script.js
    ========================================================================= */
+
 
 
