@@ -19,6 +19,92 @@
 
   <!-- Theme color for browsers -->
   <meta name="theme-color" content="#007bff">
+
+  <style>
+    /* ---------- Glassy iOS-style Header ---------- */
+    .site-header {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      padding: 15px 24px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    [data-theme="dark"] .site-header {
+      background: rgba(30, 30, 30, 0.55);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ---------- Floating Labels Fix ---------- */
+    .input-container {
+      position: relative;
+      margin: 16px 0;
+    }
+
+    .input-container input,
+    .input-container textarea,
+    .input-container select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .input-container label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 14px;
+      color: #777;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-container input:focus + label,
+    .input-container input:not(:placeholder-shown) + label,
+    .input-container textarea:focus + label,
+    .input-container textarea:not(:placeholder-shown) + label,
+    .input-container select:focus + label,
+    .input-container select:valid + label {
+      top: -8px;
+      left: 10px;
+      font-size: 12px;
+      color: var(--primary, #007bff);
+      background: var(--bg, #fff);
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+
+    /* Always float remarks if filled */
+    #remarks:valid + label,
+    #remarks:not(:placeholder-shown) + label {
+      top: -8px;
+      left: 10px;
+      font-size: 12px;
+      color: var(--primary, #007bff);
+      background: var(--bg, #fff);
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+
+    /* Dark Mode Fix */
+    [data-theme="dark"] .input-container label {
+      background: #1a1a1a;
+      color: #aaa;
+    }
+  </style>
 </head>
 <body>
 
@@ -82,6 +168,7 @@
         <option value="Other">Other</option>
       </select>
       <input type="text" id="designationOther" name="designationOther" placeholder="Enter your designation" style="display:none;">
+      <label for="designation">Designation</label>
     </div>
 
     <!-- Country -->
@@ -91,6 +178,7 @@
         <option value="Other">Other</option>
       </select>
       <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
+      <label for="country">Country</label>
     </div>
 
     <!-- State -->
@@ -99,6 +187,7 @@
         <option value="">Select State</option>
       </select>
       <input type="text" id="stateOther" name="stateOther" placeholder="Enter state" style="display:none;">
+      <label for="state">State</label>
     </div>
 
     <!-- City -->
@@ -107,6 +196,7 @@
         <option value="">Select City</option>
       </select>
       <input type="text" id="cityOther" name="cityOther" placeholder="Enter city" style="display:none;">
+      <label for="city">City</label>
     </div>
 
     <!-- Business Type -->
@@ -121,6 +211,7 @@
         <option value="Other">Other</option>
       </select>
       <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
+      <label for="business">Business Type</label>
     </div>
 
     <!-- Visiting Card Front -->
@@ -182,7 +273,7 @@
   autoCaptureLocation();
   setInterval(autoCaptureLocation, 30000);
 
-  // Dark/Light toggle
+  // Dark/Light toggle with haptic feedback
   const toggle = document.getElementById("darkModeSwitch");
   const root = document.documentElement;
   if(localStorage.getItem("theme") === "dark"){
@@ -190,6 +281,7 @@
     toggle.checked = true;
   }
   toggle.addEventListener("change", () => {
+    if (navigator.vibrate) navigator.vibrate(15); // short haptic feedback
     if(toggle.checked){
       root.setAttribute("data-theme", "dark");
       localStorage.setItem("theme", "dark");
