@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener("online", tryResendData);
 
   // Glow + validation
-  form.querySelectorAll('input, select').forEach(input => {
+  form.querySelectorAll('input, select, textarea').forEach(input => {
     input.addEventListener('input', () => {
       let isFilled = false;
       if(input.id === "name"){
@@ -59,7 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if(input.id === "phone"){
         input.value = input.value.replace(/[^\d+]/g, '');
       }
-      if (["text","email","tel"].includes(input.type)) isFilled = input.value.trim() !== "";
+      if (["text","email","tel","textarea"].includes(input.type) || input.tagName.toLowerCase()==="textarea") {
+        isFilled = input.value.trim() !== "";
+      }
       if (input.tagName.toLowerCase() === "select") isFilled = input.value !== "";
       if (input.type === "file") isFilled = input.files.length > 0;
       input.classList.toggle("glow-success", isFilled);
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
     "Goa": ["Panaji","Margao","Vasco da Gama"],
     "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
-    "Haryana": ["Chandigarh","Gurugram","Faridabad","Panipat","Hisar"],
+    "Haryana": ["Gurugram","Faridabad","Panipat","Hisar"],
     "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
     "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
     "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru"],
@@ -95,7 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     "Tripura": ["Agartala","Udaipur","Dharmanagar"],
     "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
     "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
-    "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"]
+    "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
+    "Chandigarh": ["Chandigarh","New Chandigarh"]
   };
 
   const country = document.getElementById('country');
@@ -264,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(msg.includes("SUCCESS")){
           showPopup("✅ Form submitted successfully!", false);
           form.reset();
-          form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
+          form.querySelectorAll('input, select, textarea').forEach(i=>i.classList.remove("glow-success"));
           addRippleEffect(e, submitBtn, true);
         } else {
           showPopup("❌ Form submission failed!", true);
@@ -284,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.classList.remove('loading');
       showPopup("📩 You are offline. Form saved & will auto-submit later.", false);
       form.reset();
-      form.querySelectorAll('input, select').forEach(i=>i.classList.remove("glow-success"));
+      form.querySelectorAll('input, select, textarea').forEach(i=>i.classList.remove("glow-success"));
       addRippleEffect(e, submitBtn, true);
     }
   });
@@ -295,5 +298,5 @@ document.addEventListener('DOMContentLoaded', () => {
     state.style.display = "block"; 
     city.style.display = "block"; 
   }
-  form.querySelectorAll('input, select').forEach(input=> input.dispatchEvent(new Event('input')));
+  form.querySelectorAll('input, select, textarea').forEach(input=> input.dispatchEvent(new Event('input')));
 });
