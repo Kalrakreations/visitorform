@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const form = document.getElementById('customerForm');
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUeEwhUrglj58LQ9D8eR5IzCaLgrSoqJF-AFsCZlXhD91HuQoPvi8Q04w5-R6N182Eag/exec";
 
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
@@ -312,3 +312,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; }
   form.querySelectorAll('input,select,textarea').forEach(input=>input.dispatchEvent(new Event('input')));
 });
+
