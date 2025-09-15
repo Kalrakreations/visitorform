@@ -1,6 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const form = document.getElementById('customerForm');
-  const res = await fetch("https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec", { method: "POST", body: fd });
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpduRNvWMK9FvaSiEKOh36Dp08bCefcAIPTXs0j-kcEW54aGaDXIw2e77aYO1_R2NagQ/exec";
 
   const fields = ["designation","country","state","city","business"];
   const otherFields = {
@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   request.onerror = e => console.error("IndexedDB error:", e);
 
   function saveOffline(data) {
+    if(!db) return;
     const tx = db.transaction("submissions", "readwrite");
     tx.objectStore("submissions").add(data);
   }
@@ -37,9 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const fd = new FormData();
           for (let k in record.data) fd.append(k, record.data[k]);
-          await fetch(SCRIPT_URL, { method: "POST", body: fd });
-          store.delete(record.id);
-          showPopup("✅ Offline submission synced!", false);
+          const res = await fetch(SCRIPT_URL, { method: "POST", body: fd });
+          const text = await res.text();
+          if(text.includes("SUCCESS")){
+            store.delete(record.id);
+            showPopup("✅ Offline submission synced!", false);
+          }
         } catch (err) {
           console.error("Resend failed:", err);
         }
@@ -89,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     "Mizoram": ["Aizawl","Lunglei","Champhai"],
     "Nagaland": ["Kohima","Dimapur","Mokokchung"],
     "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
-    "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda","Mohali","Moga","Firozpur","Abohar"],
+    "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda"],
     "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
     "Sikkim": ["Gangtok","Geyzing","Namchi"],
     "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
@@ -105,13 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = document.getElementById('state');
   const city = document.getElementById('city');
 
-  // --- Populate countries ---
   function populateCountries() {
     const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Other"];
     country.innerHTML = "";
     countries.forEach(c => {
-      country.insertAdjacentHTML('beforeend',
-        `<option value="${c}" ${c === "India" ? "selected" : ""}>${c}</option>`);
+      country.insertAdjacentHTML('beforeend', `<option value="${c}" ${c==="India"?"selected":""}>${c}</option>`);
     });
   }
   populateCountries();
@@ -124,14 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
     state.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
   }
 
-  // Show/hide Other fields
   fields.forEach(f => {
     document.getElementById(f).addEventListener('change', () => {
       otherFields[f].style.display = (document.getElementById(f).value === "Other") ? "block" : "none";
     });
   });
 
-  // Country logic
   country.addEventListener('change', () => {
     if(country.value === "India"){
       populateStates();
@@ -156,50 +156,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // State logic
   state.addEventListener('change', () => {
     city.innerHTML = '<option value="">Select City</option>';
     otherFields.city.style.display = "none";
     if(statesAndCities[state.value]){
-      statesAndCities[state.value].forEach(ct => {
-        city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`);
-      });
+      statesAndCities[state.value].forEach(ct => city.insertAdjacentHTML('beforeend', `<option value="${ct}">${ct}</option>`));
       city.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
       city.style.display = "block";
-    } else if(state.value === "Other"){
+    } else if(state.value==="Other"){
       otherFields.state.style.display = "block";
       otherFields.city.style.display = "block";
     }
   });
 
-  // City logic
   city.addEventListener('change', () => {
-    otherFields.city.style.display = (city.value === "Other") ? "block" : "none";
+    otherFields.city.style.display = (city.value==="Other")?"block":"none";
   });
 
-  // --- 📍 Location Capture ---
   function captureLocation() {
-    const latInput = document.getElementById("latitude");
-    const lonInput = document.getElementById("longitude");
+    const latInput = document.getElementById("latitude") || document.createElement("input");
+    const lonInput = document.getElementById("longitude") || document.createElement("input");
+    latInput.type="hidden"; latInput.id="latitude"; latInput.name="latitude";
+    lonInput.type="hidden"; lonInput.id="longitude"; lonInput.name="longitude";
+    form.appendChild(latInput); form.appendChild(lonInput);
 
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          latInput.value = pos.coords.latitude;
-          lonInput.value = pos.coords.longitude;
-          localStorage.setItem("lastLatitude", pos.coords.latitude);
-          localStorage.setItem("lastLongitude", pos.coords.longitude);
-        },
-        err => {
-          if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
-            latInput.value = localStorage.getItem("lastLatitude");
-            lonInput.value = localStorage.getItem("lastLongitude");
-          } else {
-            console.warn("Location capture failed:", err.message);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
+    if("geolocation" in navigator){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        latInput.value = pos.coords.latitude;
+        lonInput.value = pos.coords.longitude;
+        localStorage.setItem("lastLatitude", pos.coords.latitude);
+        localStorage.setItem("lastLongitude", pos.coords.longitude);
+      }, err=>{
+        if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
+          latInput.value = localStorage.getItem("lastLatitude");
+          lonInput.value = localStorage.getItem("lastLongitude");
+        } else console.warn("Location capture failed:", err.message);
+      }, {enableHighAccuracy:true, timeout:5000});
     } else if(localStorage.getItem("lastLatitude") && localStorage.getItem("lastLongitude")){
       latInput.value = localStorage.getItem("lastLatitude");
       lonInput.value = localStorage.getItem("lastLongitude");
@@ -208,19 +200,17 @@ document.addEventListener('DOMContentLoaded', () => {
   captureLocation();
   setInterval(captureLocation, 30000);
 
-  // Convert image to Base64
   async function getImageBase64(input){
     return new Promise((resolve,reject)=>{
-      if(input.files.length === 0){ resolve(null); return; }
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = ()=> resolve({base64:reader.result.split(',')[1], name:file.name});
-      reader.onerror = err => reject(err);
+      if(input.files.length===0){ resolve(null); return; }
+      const file=input.files[0];
+      const reader=new FileReader();
+      reader.onload=()=>resolve({base64:reader.result.split(',')[1], name:file.name});
+      reader.onerror=err=>reject(err);
       reader.readAsDataURL(file);
     });
   }
 
-  // Popup helper
   function showPopup(message, isError){
     const popup = document.getElementById('formPopup');
     popup.textContent = message;
@@ -229,24 +219,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>{popup.style.display='none';}, 3000);
   }
 
-  // --- Ripple + Bounce helpers ---
-  function addRippleEffect(e, button, success) {
-    const ripple = document.createElement("span");
-    ripple.className = "ripple";
-    ripple.style.left = `${e.offsetX}px`;
-    ripple.style.top = `${e.offsetY}px`;
+  function addRippleEffect(e, button, success){
+    const ripple=document.createElement("span");
+    ripple.className="ripple";
+    ripple.style.left=`${e.offsetX}px`;
+    ripple.style.top=`${e.offsetY}px`;
     button.appendChild(ripple);
-
-    button.classList.add(success ? "success" : "error", "bounce");
-
-    // Auto-reset after 3s
-    setTimeout(() => {
-      ripple.remove();
-      button.classList.remove("bounce", "success", "error");
-    }, 3000);
+    button.classList.add(success?"success":"error","bounce");
+    setTimeout(()=>{ripple.remove(); button.classList.remove("bounce","success","error");},3000);
   }
 
-  // --- Form submission ---
   form.addEventListener('submit', async e=>{
     e.preventDefault();
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -259,46 +241,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if(vcFront){ formData.append('vcFrontBase64', vcFront.base64); formData.append('vcFrontName', vcFront.name); }
     if(vcBack){ formData.append('vcBackBase64', vcBack.base64); formData.append('vcBackName', vcBack.name); }
 
-    if (navigator.onLine) {
-      fetch(SCRIPT_URL, {method:'POST', body: formData})
+    if(navigator.onLine){
+      fetch(SCRIPT_URL,{method:'POST',body:formData})
       .then(res=>res.text())
       .then(msg=>{
         submitBtn.classList.remove('loading');
         if(msg.includes("SUCCESS")){
-          showPopup("✅ Form submitted successfully!", false);
+          showPopup("✅ Form submitted successfully!",false);
           form.reset();
-          form.querySelectorAll('input, select, textarea').forEach(i=>i.classList.remove("glow-success"));
-          addRippleEffect(e, submitBtn, true);
+          form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
+          addRippleEffect(e,submitBtn,true);
         } else {
-          showPopup("❌ Form submission failed!", true);
-          addRippleEffect(e, submitBtn, false);
+          showPopup("❌ Form submission failed!",true);
+          addRippleEffect(e,submitBtn,false);
         }
-      })
-      .catch(err=>{
+      }).catch(err=>{
         submitBtn.classList.remove('loading');
-        showPopup("⚠️ Submission error!", true);
+        showPopup("⚠️ Submission error!",true);
         console.error(err);
-        addRippleEffect(e, submitBtn, false);
+        addRippleEffect(e,submitBtn,false);
       });
     } else {
-      let plainData = {};
+      let plainData={};
       formData.forEach((val,key)=>plainData[key]=val);
-      saveOffline({ data: plainData, timestamp: Date.now() });
+      saveOffline({data:plainData,timestamp:Date.now()});
       submitBtn.classList.remove('loading');
-      showPopup("📩 You are offline. Form saved & will auto-submit later.", false);
+      showPopup("📩 You are offline. Form saved & will auto-submit later.",false);
       form.reset();
-      form.querySelectorAll('input, select, textarea').forEach(i=>i.classList.remove("glow-success"));
-      addRippleEffect(e, submitBtn, true);
+      form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success"));
+      addRippleEffect(e,submitBtn,true);
     }
   });
 
-  // Default setup for India
-  if(country.value === "India"){ 
-    populateStates(); 
-    state.style.display = "block"; 
-    city.style.display = "block"; 
-  }
-  form.querySelectorAll('input, select, textarea').forEach(input=> input.dispatchEvent(new Event('input')));
+  if(country.value==="India"){ populateStates(); state.style.display="block"; city.style.display="block"; }
+  form.querySelectorAll('input,select,textarea').forEach(input=>input.dispatchEvent(new Event('input')));
 });
-
-
