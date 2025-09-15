@@ -172,7 +172,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  async function getImageBase64(input){ if(input.files.length===0) return null; return await resizeImage(input.files[0]); }
+  async function getImageBase64(input){ 
+    if(input.files.length===0) return null; 
+    return await resizeImage(input.files[0]); 
+  }
 
   // --- Popup & ripple ---
   function showPopup(msg,isErr){ const popup=document.getElementById('formPopup'); popup.textContent=msg; popup.classList.toggle('error',!!isErr); popup.style.display="block"; setTimeout(()=>{popup.style.display='none';},3000); }
@@ -193,11 +196,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       try{
         const res=await fetch(SCRIPT_URL,{method:'POST',body:formData});
         const text=await res.text(); submitBtn.classList.remove('loading');
-        if(text.includes("SUCCESS")){ showPopup("✅ Form submitted successfully!",false); form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); addRippleEffect(e,submitBtn,true);}
-        else{ saveOffline({data:plainData,timestamp:Date.now()}); showPopup("❌ Submission failed! Saved offline.",true); addRippleEffect(e,submitBtn,false);}
-      }catch(err){ submitBtn.classList.remove('loading'); saveOffline({data:plainData,timestamp:Date.now()}); showPopup("⚠️ Submission error! Saved offline.",true); console.error(err); addRippleEffect(e,submitBtn,false);}
+        if(text.includes("SUCCESS")){ 
+          showPopup("✅ Form submitted successfully!",false); 
+          form.reset(); 
+          form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); 
+          addRippleEffect(e,submitBtn,true);
+        } else { 
+          saveOffline({data:plainData,timestamp:Date.now()}); 
+          showPopup("❌ Submission failed! Saved offline.",true); 
+          addRippleEffect(e,submitBtn,false);
+        }
+      }catch(err){ 
+        submitBtn.classList.remove('loading'); 
+        saveOffline({data:plainData,timestamp:Date.now()}); 
+        showPopup("⚠️ Submission error! Saved offline.",true); 
+        console.error(err); 
+        addRippleEffect(e,submitBtn,false);
+      }
     } else{
-      saveOffline({data:plainData,timestamp:Date.now()}); submitBtn.classList.remove('loading'); showPopup("📩 You are offline. Form saved & will auto-submit later.",false); form.reset(); form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); addRippleEffect(e,submitBtn,true);
+      saveOffline({data:plainData,timestamp:Date.now()}); 
+      submitBtn.classList.remove('loading'); 
+      showPopup("📩 You are offline. Form saved & will auto-submit later.",false); 
+      form.reset(); 
+      form.querySelectorAll('input,select,textarea').forEach(i=>i.classList.remove("glow-success")); 
+      addRippleEffect(e,submitBtn,true);
     }
   });
 
