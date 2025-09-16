@@ -1,169 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Offline Customer Form</title>
+  <title>Offline - VBook Visitor Form</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- PWA support -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0d6efd">
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(reg => console.log('✅ Service Worker registered.', reg))
-          .catch(err => console.error('❌ Service Worker registration failed:', err));
-      });
-    }
-  </script>
-
-  <style>
-    /* Dark mode */
-    body {
-      background: #f4f4f9;
-      color: #222;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      outline: none;
-    }
-
-    input.glow-success, select.glow-success {
-      border-color: #28a745;
-      box-shadow: 0 0 6px #28a745;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 12px;
-      background: #0d6efd;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    button.loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    #formPopup {
-      display: none;
-      text-align: center;
-      padding: 12px;
-      margin-top: 15px;
-      border-radius: 6px;
-    }
-    #formPopup.error { background: #ffcccc; color: #900; }
-    #formPopup:not(.error) { background: #d4edda; color: #155724; }
-
-    /* Dark mode (auto from device) */
-    @media (prefers-color-scheme: dark) {
-      body { background: #121212; color: #f1f1f1; }
-      .container { background: #1e1e1e; color: #f1f1f1; }
-      input, select { background: #2b2b2b; color: #f1f1f1; border: 1px solid #444; }
-      button { background: #0d6efd; color: #fff; }
-      #formPopup.error { background: #660000; color: #fff; }
-      #formPopup:not(.error) { background: #004d1a; color: #fff; }
-    }
-  </style>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+  <meta name="theme-color" content="#007bff">
 </head>
 <body>
-  <div class="container">
-    <h2>Customer Information Form</h2>
-    <form id="customerForm">
+  <header class="site-header">
+    <div class="header-left">
+      <p>VBook Visitor Form</p>
+    </div>
+  </header>
 
-      <label for="name">Full Name</label>
-      <input type="text" id="name" name="name" required placeholder="Enter full name">
+  <main class="form-container">
+    <h1>You are Offline</h1>
+    <p>It seems you are not connected to the internet. You can still fill out the form, but it will be submitted automatically when your device reconnects.</p>
+    <div class="offline-icon" style="text-align:center; margin:40px 0;">
+      <img src="icons/offline.png" alt="Offline" style="width:100px; opacity:0.5;">
+    </div>
+    <p>Please check your connection and try again.</p>
+  </main>
 
-      <label for="phone">Phone Number</label>
-      <input type="tel" id="phone" name="phone" required placeholder="+91XXXXXXXXXX">
-
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required placeholder="Enter email">
-
-      <label for="designation">Designation</label>
-      <select id="designation" name="designation" required>
-        <option value="">Select</option>
-        <option value="Owner">Owner</option>
-        <option value="Manager">Manager</option>
-        <option value="Staff">Staff</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="designationOther" name="designationOther" style="display:none;" placeholder="Enter designation">
-
-      <label for="country">Country</label>
-      <select id="country" name="country" required>
-        <option value="">Select Country</option>
-        <option value="India">India</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="countryOther" name="countryOther" style="display:none;" placeholder="Enter country">
-
-      <label for="state">State</label>
-      <select id="state" name="state" style="display:none;"></select>
-      <input type="text" id="stateOther" name="stateOther" style="display:none;" placeholder="Enter state">
-
-      <label for="city">City</label>
-      <select id="city" name="city" style="display:none;"></select>
-      <input type="text" id="cityOther" name="cityOther" style="display:none;" placeholder="Enter city">
-
-      <label for="business">Business Type</label>
-      <select id="business" name="business" required>
-        <option value="">Select</option>
-        <option value="Retail">Retail</option>
-        <option value="Wholesale">Wholesale</option>
-        <option value="Distributor">Distributor</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="businessOther" name="businessOther" style="display:none;" placeholder="Enter business type">
-
-      <label for="vcFront">Visiting Card (Front)</label>
-      <input type="file" id="vcFront" name="vcFront" accept="image/*">
-
-      <label for="vcBack">Visiting Card (Back)</label>
-      <input type="file" id="vcBack" name="vcBack" accept="image/*">
-
-      <button type="submit">Submit</button>
-    </form>
-
-    <div id="formPopup"></div>
-  </div>
-
-  <script src="script.js"></script>
+  <footer style="text-align:center; margin-top:50px; color:#777;">
+    &copy; 2025 VBook Visitor Form
+  </footer>
 </body>
 </html>
