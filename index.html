@@ -1,240 +1,201 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VBook</title>
+  <!-- 
+    =============================
+    FINAL FORM HTML DOCUMENT
+    =============================
+    Features included in this HTML:
+    1. Transparent Header with iOS-style Dark/Light Theme Toggle
+    2. Form fields with floating labels (except Country, State, City, Designation)
+    3. Country dropdown defaults to India (green glow only)
+    4. States + 4–6 main cities listed (expandable later)
+    5. Phone validation (10 digits required for India)
+    6. Blue glow on focus, red glow on invalid, green glow on valid
+    7. Submit button with ripple effect, loader animation, success animation
+    8. Integrated with Google Apps Script endpoint
+    9. Offline support with service worker + offline.html
+    10. Fully structured and commented for easy understanding
 
-<!-- CSS -->
-<link rel="stylesheet" href="form-style.css">
+    File Dependencies:
+    - style.css       → External stylesheet for design & animations
+    - script.js       → Handles form validation, glow effects, ripple, and API submission
+    - sw.js           → Service Worker for offline support
+    - offline.html    → Page shown when offline
+    - manifest.json   → PWA manifest for installable app
+    
+    Author: [Sahil Kalra]
+    Date: Final Version
+  -->
 
-<!-- Favicons -->
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
-<link rel="shortcut icon" href="icons/favicon.ico">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
-
-<!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
-
-<meta name="theme-color" content="#f5f5f5">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Registration Form</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-
-<header class="site-header">
-  <div class="header-left">
-    <a href="#" style="text-decoration:none; color:inherit; font-weight:600;">Sahil Kalra</a> | +91 9646290118
-  </div>
-  <div class="theme-toggle">
-    <input type="checkbox" id="darkModeSwitch">
-    <label for="darkModeSwitch" class="switch"></label>
-  </div>
-</header>
-
-<main class="form-container">
-  <h1>Visitor Form</h1>
-  <form id="visitorForm" autocomplete="off">
-    <!-- Event Name -->
-    <div class="input-container">
-      <input type="text" name="eventName" id="eventName" placeholder=" ">
-      <label for="eventName">Event Name</label>
+  <!-- =========================
+       HEADER WITH THEME TOGGLE
+       ========================= -->
+  <header class="header">
+    <h1 class="form-title">Visitor Registration</h1>
+    <!-- iOS-style toggle with animated moon/sun -->
+    <div class="theme-toggle" id="themeToggle">
+      <div class="toggle-track">
+        <div class="toggle-thumb">
+          <span class="icon sun">☀️</span>
+          <span class="icon moon">🌙</span>
+        </div>
+      </div>
     </div>
+  </header>
 
-    <!-- Name -->
-    <div class="input-container">
-      <input type="text" name="name" id="name" placeholder=" " required>
-      <label for="name">Name *</label>
-    </div>
+  <!-- =========================
+       FORM START
+       ========================= -->
+  <main>
+    <form id="visitorForm" 
+          action="https://script.google.com/macros/s/AKfycbzY9kqgmXX6Xr-0mFS3SCMPGf3vGgj2r4iSs1F7JeUdPSXUP92GqwqwLZI_ag7tLi1tYA/exec" 
+          method="POST" 
+          autocomplete="off">
 
-    <!-- Phone -->
-    <div class="input-container">
-      <input type="tel" name="phone" id="phone" placeholder=" " required>
-      <label for="phone">Phone *</label>
-    </div>
+      <!-- =========================
+           SECTION: PERSONAL INFO
+           ========================= -->
+      <section class="form-section">
+        <h2>Personal Information</h2>
 
-    <!-- Email -->
-    <div class="input-container">
-      <input type="email" name="email" id="email" placeholder=" ">
-      <label for="email">Email</label>
-    </div>
+        <!-- Name -->
+        <div class="form-group">
+          <input type="text" id="name" name="Name" required>
+          <label for="name">Full Name</label>
+        </div>
 
-    <!-- Company -->
-    <div class="input-container">
-      <input type="text" name="company" id="company" placeholder=" ">
-      <label for="company">Company</label>
-    </div>
+        <!-- Email -->
+        <div class="form-group">
+          <input type="email" id="email" name="Email" required>
+          <label for="email">Email</label>
+        </div>
 
-    <!-- Designation -->
-    <div class="input-container">
-      <select id="designation" name="designation">
-        <option value="">Select Designation</option>
-        <option value="Executive">Executive</option>
-        <option value="Manager">Manager</option>
-        <option value="CEO">CEO</option>
-        <option value="Founder">Founder</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="designationOther" name="designationOther" placeholder="Enter designation" style="display:none;">
-      <label for="designation">Designation</label>
-    </div>
+        <!-- Phone -->
+        <div class="form-group">
+          <input type="tel" id="phone" name="Phone" maxlength="10" required>
+          <label for="phone">Phone (10 digits for India)</label>
+        </div>
+      </section>
 
-    <!-- Country -->
-    <div class="input-container">
-      <select id="country" name="country">
-        <!-- Options populated by JS -->
-      </select>
-      <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
-      <label for="country">Country</label>
-    </div>
+      <!-- =========================
+           SECTION: COMPANY INFO
+           ========================= -->
+      <section class="form-section">
+        <h2>Company Information</h2>
 
-    <!-- State -->
-    <div class="input-container">
-      <select id="state" name="state">
-        <!-- Options populated by JS -->
-      </select>
-      <input type="text" id="stateOther" name="stateOther" placeholder="Enter state" style="display:none;">
-      <label for="state">State</label>
-    </div>
+        <!-- Designation (no floating label) -->
+        <div class="form-group no-float">
+          <label for="designation">Designation</label>
+          <input type="text" id="designation" name="Designation" required>
+        </div>
 
-    <!-- City -->
-    <div class="input-container">
-      <select id="city" name="city">
-        <!-- Options populated by JS -->
-      </select>
-      <input type="text" id="cityOther" name="cityOther" placeholder="Enter city" style="display:none;">
-      <label for="city">City</label>
-    </div>
+        <!-- Business Type (auto-assign dept/person) -->
+        <div class="form-group">
+          <label for="businessType">Business Type</label>
+          <select id="businessType" name="BusinessType" required>
+            <option value="">-- Select Business Type --</option>
+            <option value="Exporter">Exporter</option>
+            <option value="International Certification">International Certification</option>
+            <option value="Digital Marketing">Digital Marketing</option>
+            <option value="Ecommerce Services">Ecommerce Services</option>
+            <option value="Trader">Trader</option>
+            <option value="Retailer">Retailer</option>
+            <option value="Wholesaler">Wholesaler</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Quality">Quality</option>
+            <option value="Hotels">Hotels</option>
+            <option value="HOReCa">HOReCa</option>
+          </select>
+        </div>
 
-    <!-- Business Type -->
-    <div class="input-container">
-      <select id="business" name="business">
-        <option value="">Select Business</option>
-        <option value="Employee">Employee</option>
-        <option value="Trader">Trader</option>
-        <option value="Exporter">Exporter</option>
-        <option value="E-commerce">E-commerce</option>
-        <option value="Certification Services">Certification Services</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
-      <label for="business">Business Type</label>
-    </div>
+        <!-- Auto-filled Department (hidden but stored) -->
+        <input type="hidden" id="department" name="Department">
+        <input type="hidden" id="assignedPerson" name="AssignedPerson">
+      </section>
 
-    <!-- Visiting Card Front -->
-    <div class="input-container">
-      <input type="file" name="vcFront" id="vcFront" accept="image/*">
-      <label for="vcFront">Visiting Card (Front)</label>
-    </div>
+      <!-- =========================
+           SECTION: LOCATION INFO
+           ========================= -->
+      <section class="form-section">
+        <h2>Location Information</h2>
 
-    <!-- Visiting Card Back -->
-    <div class="input-container">
-      <input type="file" name="vcBack" id="vcBack" accept="image/*">
-      <label for="vcBack">Visiting Card (Back)</label>
-    </div>
+        <!-- Country (default India) -->
+        <div class="form-group no-float">
+          <label for="country">Country</label>
+          <select id="country" name="Country" required>
+            <option value="India" selected>India</option>
+            <option value="USA">USA</option>
+            <option value="UK">United Kingdom</option>
+            <option value="Germany">Germany</option>
+            <option value="Australia">Australia</option>
+            <option value="Canada">Canada</option>
+          </select>
+        </div>
 
-    <!-- Remarks / Comments -->
-    <div class="input-container">
-      <textarea id="remarks" name="remarks" placeholder=" " rows="3"></textarea>
-      <label for="remarks">Remarks / Comments</label>
-    </div>
+        <!-- State (works only for India) -->
+        <div class="form-group no-float">
+          <label for="state">State</label>
+          <select id="state" name="State">
+            <option value="">-- Select State --</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="West Bengal">West Bengal</option>
+          </select>
+        </div>
 
-    <!-- Hidden Location Inputs -->
-    <input type="hidden" id="latitude" name="latitude">
-    <input type="hidden" id="longitude" name="longitude">
+        <!-- City (works for all countries, limited for demo) -->
+        <div class="form-group no-float">
+          <label for="city">City</label>
+          <select id="city" name="City" required>
+            <option value="">-- Select City --</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Hyderabad">Hyderabad</option>
+          </select>
+        </div>
+      </section>
 
-    <button type="submit" class="submit-btn">Submit</button>
-  </form>
-</main>
+      <!-- =========================
+           SECTION: REMARKS
+           ========================= -->
+      <section class="form-section">
+        <h2>Additional Information</h2>
 
-<!-- Popup -->
-<div id="formPopup" class="form-popup">Form submitted successfully!</div>
+        <!-- Remarks -->
+        <div class="form-group">
+          <textarea id="remarks" name="Remarks" rows="4"></textarea>
+          <label for="remarks">Remarks (Optional)</label>
+        </div>
+      </section>
 
-<!-- JS -->
-<script>
-  // ==============================
-  // States and Cities dataset
-  // ==============================
-  const statesAndCities = {
-    "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
-    "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat"],
-    "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat"],
-    "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur"],
-    "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba"],
-    "Goa": ["Panaji","Margao","Vasco da Gama"],
-    "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
-    "Haryana": ["Gurugram","Faridabad","Panipat","Hisar"],
-    "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan"],
-    "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro"],
-    "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru"],
-    "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
-    "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
-    "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-    "Manipur": ["Imphal","Thoubal","Bishnupur"],
-    "Meghalaya": ["Shillong","Tura","Nongpoh"],
-    "Mizoram": ["Aizawl","Lunglei","Champhai"],
-    "Nagaland": ["Kohima","Dimapur","Mokokchung"],
-    "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur"],
-    "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda"],
-    "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
-    "Sikkim": ["Gangtok","Geyzing","Namchi"],
-    "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Erode"],
-    "Telangana": ["Hyderabad","Warangal","Nizamabad"],
-    "Tripura": ["Agartala","Udaipur","Dharmanagar"],
-    "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Ghaziabad","Meerut","Noida"],
-    "Uttarakhand": ["Dehradun","Haridwar","Roorkee"],
-    "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
-    "Chandigarh": ["Chandigarh","New Chandigarh"]
-  };
+      <!-- =========================
+           SUBMIT BUTTON WITH RIPPLE
+           ========================= -->
+      <div class="form-actions">
+        <button type="submit" id="submitBtn" class="ripple-btn">
+          Submit
+        </button>
+      </div>
+    </form>
+  </main>
 
-  const countrySelect = document.getElementById("country");
-  const stateSelect = document.getElementById("state");
-  const citySelect = document.getElementById("city");
-
-  // Populate countries
-  function populateCountries() {
-    const countries = ["India","United States","United Kingdom","Canada","Australia","Other"];
-    countrySelect.innerHTML = "";
-    countries.forEach(c => {
-      const selected = c === "India" ? "selected" : "";
-      countrySelect.insertAdjacentHTML('beforeend', `<option value="${c}" ${selected}>${c}</option>`);
-    });
-  }
-
-  // Populate states based on selected country
-  function populateStates() {
-    stateSelect.innerHTML = "";
-    const country = countrySelect.value;
-    if(country === "India") {
-      Object.keys(statesAndCities).forEach(state => {
-        stateSelect.insertAdjacentHTML('beforeend', `<option value="${state}">${state}</option>`);
-      });
-      stateSelect.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    } else {
-      stateSelect.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-    }
-    populateCities(); // populate cities for first state
-  }
-
-  // Populate cities based on selected state
-  function populateCities() {
-    citySelect.innerHTML = "";
-    const selectedState = stateSelect.value;
-    if(statesAndCities[selectedState]){
-      statesAndCities[selectedState].forEach(city => {
-        citySelect.insertAdjacentHTML('beforeend', `<option value="${city}">${city}</option>`);
-      });
-    }
-    citySelect.insertAdjacentHTML('beforeend', `<option value="Other">Other</option>`);
-  }
-
-  // Event Listeners
-  countrySelect.addEventListener('change', populateStates);
-  stateSelect.addEventListener('change', populateCities);
-
-  // Initialize
-  populateCountries();
-  populateStates();
-
-</script>
+  <!-- =========================
+       SCRIPTS
+       ========================= -->
+  <script src="script.js"></script>
 </body>
 </html>
