@@ -1,111 +1,71 @@
-importScripts('https://cdnjs.cloudflare.com/ajax/libs/idb/7.0.1/idb.min.js');
+/* ===================================================
+   Service Worker for Offline Support
+   Caches HTML, CSS, JS, and fallback content
+   =================================================== */
 
-const CACHE_NAME = 'visitor-form-cache-v4';
-const DB_NAME = 'visitorFormDB';
-const STORE_NAME = 'formQueue';
+const CACHE_NAME = 'visitor-form-cache-v1';
+const OFFLINE_URL = '/offline.html'; // fallback page if user is offline
 
-const URLS_TO_CACHE = [
+// Files to cache
+const FILES_TO_CACHE = [
   '/',
   '/index.html',
-  '/offline.html',
-  '/form-style.css',
-  '/form-script.js',
-  '/icons/favicon-16x16.png',
-  '/icons/favicon-32x32.png',
-  '/icons/favicon.ico',
-  '/icons/apple-touch-icon.png',
-  '/icons/android-chrome-192x192.png',
-  '/icons/android-chrome-512x512.png'
+  '/style.css',
+  '/script.js',
+  '/favicon.ico',
+  '/manifest.json',
+  OFFLINE_URL,
+  '/images/logo.png', // add your images/icons here
 ];
 
-// ---------------- Install SW ----------------
-self.addEventListener('install', (event) => {
+// Install Event: caching files
+self.addEventListener('install', event => {
+  console.log('[ServiceWorker] Install');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('📦 Caching app shell');
-        return cache.addAll(URLS_TO_CACHE);
+        console.log('[ServiceWorker] Pre-caching offline page and assets');
+        return cache.addAll(FILES_TO_CACHE);
       })
-      .then(() => self.skipWaiting())
   );
+  self.skipWaiting();
 });
 
-// ---------------- Activate SW ----------------
-self.addEventListener('activate', (event) => {
+// Activate Event: cleanup old caches
+self.addEventListener('activate', event => {
+  console.log('[ServiceWorker] Activate');
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            console.log('🗑️ Deleting old cache:', key);
-            return caches.delete(key);
-          }
-        })
-      )
-    )
+    caches.keys().then(keyList => {
+      return Promise.all(keyList.map(key => {
+        if(key !== CACHE_NAME){
+          console.log('[ServiceWorker] Removing old cache:', key);
+          return caches.delete(key);
+        }
+      }));
+    })
   );
   self.clients.claim();
 });
 
-// ---------------- Fetch handler ----------------
-self.addEventListener('fetch', (event) => {
+// Fetch Event: serve cached content when offline
+self.addEventListener('fetch', event => {
+  if(event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => cachedResponse || fetch(event.request).catch(() => {
-        if (event.request.destination === 'document') {
-          return caches.match('/offline.html');
-        }
-      }))
+    fetch(event.request)
+      .then(response => {
+        // Clone response and store in cache
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+        return response;
+      })
+      .catch(() => {
+        // Try cache if network fails
+        return caches.match(event.request)
+          .then(cachedResponse => cachedResponse || caches.match(OFFLINE_URL));
+      })
   );
 });
 
-// ---------------- Background Sync ----------------
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-forms') {
-    event.waitUntil(submitForms());
-  }
-});
-
-// ---------------- IndexedDB helper ----------------
-async function getDb() {
-  return idb.openDB(DB_NAME, 1, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { autoIncrement: true });
-      }
-    }
-  });
-}
-
-// ---------------- Submit queued forms ----------------
-async function submitForms() {
-  const db = await getDb();
-  const allKeys = await db.getAllKeys(STORE_NAME);
-
-  for (const key of allKeys) {
-    const formDataObj = await db.get(STORE_NAME, key);
-
-    try {
-      const fd = new FormData();
-      for (let k in formDataObj) fd.append(k, formDataObj[k]);
-
-      const res = await fetch("YOUR_GOOGLE_SCRIPT_URL", { method: "POST", body: fd });
-      const msg = await res.text();
-
-      if (msg.includes("SUCCESS")) {
-        console.log("✅ Synced form:", key);
-        await db.delete(STORE_NAME, key);
-      }
-    } catch (err) {
-      console.error("❌ Sync failed for form:", key, err);
-      // Keep it in DB for next retry
-    }
-  }
-}
-
-// ---------------- Force SW update on new version ----------------
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
+/* ---------- Background Sync for Form Submission ---------- */
+// Optional: retry failed s
