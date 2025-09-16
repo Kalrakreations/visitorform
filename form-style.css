@@ -10,6 +10,7 @@
   --muted: #999;
   --primary: #007bff;
   --success: #28a745;
+  --error: #ff4d4d;
   --popup-bg: #4CAF50;
   --popup-error: #ff4d4d;
   --shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -17,7 +18,6 @@
   --icon-moon: #a6a6a6;
   --glass-light: rgba(255, 255, 255, 0.6);
   --glass-dark: rgba(30, 30, 30, 0.55);
-  --invalid: #ff3b30;
 }
 
 /* ---------- Dark mode overrides ---------- */
@@ -28,12 +28,12 @@
   --muted: #bfbfbf;
   --primary: #66aaff;
   --success: #4caf50;
+  --error: #ff4d4d;
   --popup-bg: #333;
   --popup-error: #b00020;
   --shadow: 0 8px 30px rgba(0,0,0,0.6);
   --icon-sun: #666;
   --icon-moon: #ccc;
-  --invalid: #ff6b6b;
 }
 
 /* ---------- Reset & base ---------- */
@@ -120,6 +120,7 @@ body {
   padding: 28px 36px;
   border-radius: 16px;
   box-shadow: var(--shadow);
+  position: relative;
   transition: background 0.4s ease, box-shadow 0.4s ease;
 }
 .form-container h1 {
@@ -148,26 +149,24 @@ body {
   outline:none;
   transition: border-color .25s ease, box-shadow .25s ease, background .25s ease, color .25s ease;
 }
+
+/* Focus → Green glow */
 .input-container input:focus,
 .input-container select:focus,
 .input-container textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 5px rgba(0,123,255,0.12);
+  border-color: var(--success);
+  box-shadow: 0 0 0 4px rgba(40,167,69,0.25);
 }
 
-/* Invalid input glow (for phone <10 digits) */
-input.invalid {
-  border-color: var(--invalid) !important;
-  box-shadow: 0 0 0 4px rgba(255,59,48,0.35) !important;
-  animation: pulseInvalid 1s infinite;
-}
-@keyframes pulseInvalid {
-  0% { box-shadow: 0 0 0 0 rgba(255,59,48,0.35); }
-  70% { box-shadow: 0 0 0 6px rgba(255,59,48,0); }
-  100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); }
+/* Error → Red glow */
+.input-container input.error,
+.input-container select.error,
+.input-container textarea.error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 4px rgba(255,77,77,0.25);
 }
 
-/* Floating label */
+/* Floating label styling */
 .input-container label {
   position:absolute;
   left:16px;
@@ -192,7 +191,7 @@ input.invalid {
   color: var(--primary);
 }
 
-/* Force remarks floating */
+/* Remarks always float when filled */
 #remarks:valid + label,
 #remarks:not(:placeholder-shown) + label {
   top: -10px;
@@ -202,7 +201,18 @@ input.invalid {
 }
 
 /* ===================================================
-   BUTTON
+   FILE INPUT
+   =================================================== */
+input[type="file"] {
+  padding: 10px;
+  font-size: 15px;
+  color: var(--text);
+  background: transparent;
+  border-radius: 6px;
+}
+
+/* ===================================================
+   SUBMIT BUTTON
    =================================================== */
 button.submit-btn {
   width:100%;
@@ -214,11 +224,31 @@ button.submit-btn {
   border:none;
   border-radius:12px;
   cursor:pointer;
+  position:relative;
   transition: transform .2s ease, background .3s ease, box-shadow .3s ease, opacity .3s ease;
   overflow:hidden;
 }
 button.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 button.submit-btn:active { transform:scale(0.97); }
+
+/* Success + Error states */
+button.submit-btn.success { background: var(--success) !important; }
+button.submit-btn.error { background: var(--error) !important; }
+
+/* ===================================================
+   ANIMATIONS
+   =================================================== */
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.15); }
+  50%  { transform: scale(0.95); }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
 
 /* ===================================================
    POPUP
@@ -234,14 +264,6 @@ button.submit-btn:active { transform:scale(0.97); }
   font-weight:600;
   display:none;
   z-index:1200;
-  transform: translateY(-20px);
-  opacity:0;
-  animation: popupFade 0.5s ease forwards;
-}
-.form-popup.error { background: var(--popup-error); }
-@keyframes popupFade {
-  from { opacity:0; transform: translateY(-20px); }
-  to { opacity:1; transform: translateY(0); }
 }
 
 /* ===================================================
