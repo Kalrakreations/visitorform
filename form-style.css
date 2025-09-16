@@ -1,5 +1,5 @@
 /* ===================================================
-   Modern form CSS — with India phone + filled states
+   Modern form CSS — full version with India phone rules
    =================================================== */
 
 /* ---------- Theme variables (light default) ---------- */
@@ -122,7 +122,7 @@ body {
   transition: border-color .25s ease, box-shadow .25s ease, background .25s ease, color .25s ease;
 }
 
-/* --- Default focus glow --- */
+/* --- Default focus glow (blue) --- */
 .input-container input:focus,
 .input-container select:focus,
 .input-container textarea:focus {
@@ -138,10 +138,10 @@ body {
   box-shadow: 0 0 0 4px rgba(40,167,69,0.15);
 }
 
-/* --- Phone specific: red when invalid (India only, JS will toggle .invalid) --- */
+/* --- Phone specific --- */
 #phone.invalid:focus {
   border-color: var(--error) !important;
-  box-shadow: 0 0 0 4px rgba(231,76,60,0.4) !important;
+  box-shadow: 0 0 0 4px rgba(231,76,60,0.45) !important;
 }
 #phone.valid {
   border-color: var(--success) !important;
@@ -182,6 +182,21 @@ body {
   color: var(--primary);
 }
 
+/* Placeholder */
+::placeholder { color: rgba(0,0,0,0.28); transition: color 0.3s ease; }
+[data-theme="dark"] ::placeholder { color: rgba(255,255,255,0.25); }
+
+/* ===================================================
+   FILE INPUT
+   =================================================== */
+input[type="file"] {
+  padding: 10px;
+  font-size: 15px;
+  color: var(--text);
+  background: transparent;
+  border-radius: 6px;
+}
+
 /* ===================================================
    SUBMIT BUTTON
    =================================================== */
@@ -195,12 +210,37 @@ button.submit-btn {
   border:none;
   border-radius:12px;
   cursor:pointer;
-  transition: transform .2s ease, background .3s ease, box-shadow .3s ease;
+  position:relative;
+  transition: transform .2s ease, background .3s ease, box-shadow .3s ease, opacity .3s ease;
+  overflow:hidden;
 }
 button.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 button.submit-btn:active { transform:scale(0.97); }
-button.submit-btn.success { background: var(--success) !important; }
-button.submit-btn.error { background: var(--popup-error) !important; }
+
+/* Success + Error states */
+button.submit-btn.success {
+  background: var(--success) !important;
+  animation: bounce 0.6s cubic-bezier(0.68,-0.55,0.27,1.55);
+}
+button.submit-btn.error {
+  background: var(--popup-error) !important;
+  animation: ripple-fade 0.8s ease-out;
+}
+
+/* ===================================================
+   ANIMATIONS
+   =================================================== */
+@keyframes bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.15); }
+  50%  { transform: scale(0.95); }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+@keyframes ripple-fade {
+  0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.5); }
+  100% { box-shadow: 0 0 0 25px rgba(255,77,77,0); }
+}
 
 /* ===================================================
    POPUP
@@ -221,6 +261,10 @@ button.submit-btn.error { background: var(--popup-error) !important; }
   animation: popupFade 0.5s ease forwards;
 }
 .form-popup.error { background: var(--popup-error); }
+@keyframes popupFade {
+  from { opacity:0; transform: translateY(-20px); }
+  to { opacity:1; transform: translateY(0); }
+}
 
 /* ===================================================
    TEXTAREA
@@ -229,6 +273,18 @@ textarea {
   min-height: 90px;
   line-height: 1.5;
   resize: vertical;
+  padding:14px 16px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  background: var(--form-bg);
+  color: var(--text);
+  font-size:15.5px;
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 5px rgba(0,123,255,0.12);
+  outline:none;
 }
 
 /* ===================================================
@@ -236,6 +292,8 @@ textarea {
    =================================================== */
 @media (max-width: 820px) {
   .form-container { padding:20px; width:96%; }
+  .input-container { margin:14px 0; }
+  .site-header { padding:12px 18px; }
 }
 @media (max-width: 480px) {
   .form-container h1 { font-size:22px; }
