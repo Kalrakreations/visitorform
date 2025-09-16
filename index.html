@@ -1,150 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- =============================================================
-       FINAL FORM HTML FILE
-       =============================================================
-       Features:
-       1. Responsive, modern form with transparent header.
-       2. Light/Dark theme toggle with iOS-style animated sun/moon.
-       3. Input glow effects:
-          - Blue glow on focus
-          - Red glow on invalid
-          - Green glow on valid (e.g., 10-digit Indian phone number)
-       4. Dropdowns:
-          - Country (default: India)
-          - State & City (auto-populated, only active if relevant)
-          - Designation & Business Type (mapped to Department + Assigned Person)
-       5. Submit Button:
-          - Ripple effect
-          - Shows “Submitting…” + animated spinner
-          - Turns green with “Success” after submission
-       6. Offline Support:
-          - Service worker + manifest + offline.html (linked separately)
-       ============================================================= -->
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visitor Form - Final Version</title>
+  <title>Visitor Form</title>
 
-  <!-- Link external CSS -->
+  <!-- ===================================================
+       CSS LINK (Inline or separate can be used)
+       We'll send full CSS after this
+  =================================================== -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- PWA manifest -->
-  <link rel="manifest" href="manifest.json">
-
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
+  <!-- ===================================================
+       Comments:
+       - This HTML represents the visitor registration form.
+       - It works with script.js and style.css to provide:
+         * Theme toggle (light/dark)
+         * Pre-filled country/state/city
+         * Phone validation & color glow
+         * Department assignment
+         * Submit button ripple & spinner animation
+  =================================================== -->
 </head>
 <body>
-  <!-- =============================================================
-       HEADER SECTION
-       ============================================================= -->
-  <header class="app-header">
-    <h1>Visitor Registration Form</h1>
-    <!-- Theme Toggle Switch -->
+  <!-- ===================== HEADER ===================== -->
+  <header class="site-header">
+    <div class="header-left">
+      <p>Visitor Registration Form</p>
+    </div>
     <div class="theme-toggle">
-      <input type="checkbox" id="themeSwitch">
-      <label for="themeSwitch" class="toggle-label">
-        <span class="toggle-sun">☀️</span>
-        <span class="toggle-moon">🌙</span>
-      </label>
+      <!-- Hidden checkbox for theme toggle -->
+      <input type="checkbox" id="themeCheckbox">
+      <!-- iOS style switch -->
+      <label class="switch" for="themeCheckbox"></label>
+      <!-- Sun & Moon icons -->
+      <i class="icon-sun">☀️</i>
+      <i class="icon-moon">🌙</i>
     </div>
   </header>
 
-  <!-- =============================================================
-       MAIN FORM
-       ============================================================= -->
+  <!-- ===================== FORM CONTAINER ===================== -->
   <main>
-    <form id="visitorForm" method="POST" action="https://script.google.com/macros/s/AKfycbzY9kqgmXX6Xr-0mFS3SCMPGf3vGgj2r4iSs1F7JeUdPSXUP92GqwqwLZI_ag7tLi1tYA/exec">
+    <div class="form-container">
+      <h1>Register as Visitor</h1>
+      <form id="visitorForm">
+        <!-- Event Name -->
+        <div class="input-container">
+          <input type="text" id="eventName" required placeholder=" ">
+          <label for="eventName">Event Name</label>
+        </div>
 
-      <!-- Name -->
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input type="text" id="name" name="name" placeholder="Enter your full name" required>
-      </div>
+        <!-- Name -->
+        <div class="input-container">
+          <input type="text" id="name" required placeholder=" ">
+          <label for="name">Full Name</label>
+        </div>
 
-      <!-- Email -->
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email address" required>
-      </div>
+        <!-- Phone -->
+        <div class="input-container">
+          <input type="tel" id="phone" required placeholder=" ">
+          <label for="phone">Phone</label>
+        </div>
 
-      <!-- Phone -->
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
-      </div>
+        <!-- Email -->
+        <div class="input-container">
+          <input type="email" id="email" required placeholder=" ">
+          <label for="email">Email</label>
+        </div>
 
-      <!-- Country -->
-      <div class="form-group">
-        <label for="country">Country</label>
-        <select id="country" name="country" required></select>
-      </div>
+        <!-- Company -->
+        <div class="input-container">
+          <input type="text" id="company" placeholder=" ">
+          <label for="company">Company</label>
+        </div>
 
-      <!-- State -->
-      <div class="form-group">
-        <label for="state">State</label>
-        <select id="state" name="state"></select>
-      </div>
+        <!-- Designation -->
+        <div class="input-container">
+          <input type="text" id="designation" placeholder="Manager">
+          <label for="designation">Designation</label>
+        </div>
 
-      <!-- City -->
-      <div class="form-group">
-        <label for="city">City</label>
-        <select id="city" name="city"></select>
-      </div>
+        <!-- Country -->
+        <div class="input-container">
+          <select id="country">
+            <!-- Populated dynamically via JS -->
+          </select>
+          <label for="country">Country</label>
+        </div>
 
-      <!-- Designation -->
-      <div class="form-group">
-        <label for="designation">Designation</label>
-        <select id="designation" name="designation" required>
-          <option value="">Select your designation</option>
-          <option value="Owner">Owner</option>
-          <option value="Manager">Manager</option>
-          <option value="Executive">Executive</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
+        <!-- State -->
+        <div class="input-container">
+          <select id="state">
+            <!-- Populated dynamically via JS -->
+          </select>
+          <label for="state">State</label>
+        </div>
 
-      <!-- Business Type -->
-      <div class="form-group">
-        <label for="businessType">Business Type</label>
-        <select id="businessType" name="businessType" required>
-          <option value="">Select business type</option>
-          <option value="Exporter">Exporter</option>
-          <option value="International Certification">International Certification</option>
-          <option value="Digital Marketing">Digital Marketing</option>
-          <option value="Ecommerce Services">Ecommerce Services</option>
-          <option value="Trader">Trader</option>
-          <option value="Retailer">Retailer</option>
-          <option value="Wholesaler">Wholesaler</option>
-          <option value="Distributor">Distributor</option>
-          <option value="Marketing">Marketing</option>
-          <option value="Quality">Quality</option>
-          <option value="Hotels">Hotels</option>
-          <option value="HOReCa">HOReCa</option>
-        </select>
-      </div>
+        <!-- City -->
+        <div class="input-container">
+          <select id="city">
+            <!-- Populated dynamically via JS -->
+          </select>
+          <label for="city">City</label>
+        </div>
 
-      <!-- Hidden Department + Assigned Person -->
-      <input type="hidden" id="department" name="department">
-      <input type="hidden" id="assignedPerson" name="assignedPerson">
+        <!-- Business -->
+        <div class="input-container">
+          <input type="text" id="business" placeholder=" ">
+          <label for="business">Business Type</label>
+        </div>
 
-      <!-- Remarks -->
-      <div class="form-group">
-        <label for="remarks">Remarks</label>
-        <textarea id="remarks" name="remarks" placeholder="Additional notes..."></textarea>
-      </div>
+        <!-- Department (auto-assigned) -->
+        <div class="input-container">
+          <input type="text" id="department" readonly placeholder=" ">
+          <label for="department">Department</label>
+        </div>
 
-      <!-- Submit Button -->
-      <button type="submit" id="submitBtn" class="ripple">Submit</button>
-    </form>
+        <!-- Assigned Person (auto-assigned) -->
+        <div class="input-container">
+          <input type="text" id="assignedPerson" readonly placeholder=" ">
+          <label for="assignedPerson">Assigned Person</label>
+        </div>
+
+        <!-- Remarks -->
+        <div class="input-container">
+          <textarea id="remarks" placeholder=" "></textarea>
+          <label for="remarks">Remarks</label>
+        </div>
+
+        <!-- Latitude -->
+        <div class="input-container">
+          <input type="text" id="latitude" placeholder=" ">
+          <label for="latitude">Latitude</label>
+        </div>
+
+        <!-- Longitude -->
+        <div class="input-container">
+          <input type="text" id="longitude" placeholder=" ">
+          <label for="longitude">Longitude</label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitBtn" class="submit-btn">Submit</button>
+      </form>
+    </div>
   </main>
 
-  <!-- =============================================================
-       SCRIPTS
-       ============================================================= -->
+  <!-- ===================== JS SCRIPT ===================== -->
   <script src="script.js"></script>
 </body>
 </html>
