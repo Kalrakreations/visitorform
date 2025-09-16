@@ -1,5 +1,5 @@
 /* ===================================================
-   Modern form CSS — full version with India phone rules
+   Modern Form CSS — variables + smooth animations
    =================================================== */
 
 /* ---------- Theme variables (light default) ---------- */
@@ -8,16 +8,17 @@
   --form-bg: #ffffff;
   --text: #222;
   --muted: #999;
-  --primary: #007bff;
-  --success: #28a745;
-  --error: #e74c3c;
+  --primary: #007bff;       /* Blue focus */
+  --success: #28a745;       /* Green for valid inputs */
+  --error: #ff4d4d;         /* Red for invalid inputs */
   --popup-bg: #4CAF50;
   --popup-error: #ff4d4d;
   --shadow: 0 8px 20px rgba(0,0,0,0.08);
   --icon-sun: #a6a6a6;
   --icon-moon: #a6a6a6;
-  --glass-light: rgba(255, 255, 255, 0.6);
-  --glass-dark: rgba(30, 30, 30, 0.55);
+  --glass-light: rgba(255,255,255,0.6);
+  --glass-dark: rgba(30,30,30,0.55);
+  --transition-speed: 0.3s;
 }
 
 /* ---------- Dark mode overrides ---------- */
@@ -28,7 +29,7 @@
   --muted: #bfbfbf;
   --primary: #66aaff;
   --success: #4caf50;
-  --error: #ff5252;
+  --error: #ff4d4d;
   --popup-bg: #333;
   --popup-error: #b00020;
   --shadow: 0 8px 30px rgba(0,0,0,0.6);
@@ -37,130 +38,197 @@
 }
 
 /* ---------- Reset & base ---------- */
-* { box-sizing: border-box; margin:0; padding:0; }
-html,body { height:100%; }
-body {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
   font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1.5;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  transition: background 0.4s ease, color 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 /* ===================================================
-   HEADER (iOS Glass effect)
+   HEADER (Transparent Glass effect)
    =================================================== */
 .site-header {
-  width:100%;
+  width: 100%;
   padding: 15px 24px;
   background: var(--glass-light);
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid rgba(255,255,255,0.3);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  position:sticky;
-  top:0;
-  z-index:1000;
-  transition: background 0.4s ease, box-shadow 0.4s ease, color 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: background var(--transition-speed) ease, box-shadow var(--transition-speed) ease, color var(--transition-speed) ease;
 }
+
 [data-theme="dark"] .site-header {
   background: var(--glass-dark);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.header-left p { font-weight:600; color:var(--text); transition: color 0.4s ease; }
-.header-left a { text-decoration:none; color:inherit; font-weight:600; }
+
+.header-left p, .header-left a {
+  font-weight: 600;
+  color: var(--text);
+  transition: color var(--transition-speed) ease;
+}
+
+/* ===================================================
+   THEME TOGGLE (Switch)
+   =================================================== */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.theme-toggle input { display: none; }
+
+.switch {
+  width: 52px;
+  height: 28px;
+  background: #ccc;
+  border-radius: 999px;
+  position: relative;
+  transition: background var(--transition-speed) ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), background 0.35s ease, box-shadow 0.35s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.theme-toggle input:checked + .switch {
+  background: var(--primary);
+}
+.theme-toggle input:checked + .switch::after {
+  transform: translateX(24px);
+  background: #fff;
+}
+
+/* Sun & Moon icons */
+.icon-sun, .icon-moon {
+  font-size: 18px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all var(--transition-speed) ease;
+}
+.icon-sun {
+  left: 8px;
+  color: var(--icon-sun);
+  opacity: 1;
+}
+.icon-moon {
+  right: 8px;
+  color: var(--icon-moon);
+  opacity: 0;
+}
+.theme-toggle input:checked ~ .icon-sun {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.8);
+}
+.theme-toggle input:checked ~ .icon-moon {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
 
 /* ===================================================
    FORM CONTAINER
    =================================================== */
 .form-container {
-  width:95%;
-  max-width:780px;
+  width: 95%;
+  max-width: 780px;
   background: var(--form-bg);
   margin: 36px 0;
   padding: 28px 36px;
   border-radius: 16px;
   box-shadow: var(--shadow);
-  position: relative;
-  transition: background 0.4s ease, box-shadow 0.4s ease;
+  transition: background var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 .form-container h1 {
-  font-size:28px;
-  font-weight:700;
-  color:var(--text);
-  margin-bottom:18px;
-  text-align:center;
-  transition: color 0.4s ease;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 18px;
+  text-align: center;
+  transition: color var(--transition-speed) ease;
 }
 
 /* ===================================================
-   INPUTS + FLOATING LABEL
+   INPUTS + FLOATING LABELS
    =================================================== */
 .input-container {
-  position:relative;
-  margin:18px 0;
+  position: relative;
+  margin: 18px 0;
 }
+
 .input-container input,
 .input-container select,
 .input-container textarea {
-  width:100%;
-  padding:14px 16px;
-  border:1px solid #ccc;
-  border-radius:10px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
   background: var(--form-bg);
   color: var(--text);
-  font-size:15.5px;
-  outline:none;
-  transition: border-color .25s ease, box-shadow .25s ease, background .25s ease, color .25s ease;
+  font-size: 15.5px;
+  outline: none;
+  transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
-/* --- Default focus glow (blue) --- */
+/* Focus: blue glow */
 .input-container input:focus,
 .input-container select:focus,
 .input-container textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 5px rgba(0,123,255,0.12);
+  box-shadow: 0 0 8px var(--primary);
 }
 
-/* --- Filled (green) --- */
-.input-container input:not(:placeholder-shown),
-.input-container textarea:not(:placeholder-shown),
-.input-container select:valid {
+/* Conditional Valid / Invalid States */
+.input-container input.valid {
   border-color: var(--success);
-  box-shadow: 0 0 0 4px rgba(40,167,69,0.15);
+  box-shadow: 0 0 8px var(--success);
+}
+.input-container input.invalid {
+  border-color: var(--error);
+  box-shadow: 0 0 8px var(--error);
 }
 
-/* --- Phone specific --- */
-#phone.invalid:focus {
-  border-color: var(--error) !important;
-  box-shadow: 0 0 0 4px rgba(231,76,60,0.45) !important;
-}
-#phone.valid {
-  border-color: var(--success) !important;
-  box-shadow: 0 0 0 4px rgba(40,167,69,0.35) !important;
-}
-
-/* Floating label */
+/* Floating label styling */
 .input-container label {
-  position:absolute;
-  left:16px;
-  top:50%;
+  position: absolute;
+  left: 16px;
+  top: 50%;
   transform: translateY(-50%);
   color: var(--muted);
-  font-size:15.5px;
-  pointer-events:none;
-  transition: all .25s ease;
+  font-size: 15.5px;
+  pointer-events: none;
+  transition: all var(--transition-speed) ease;
   background: var(--form-bg);
   padding: 0 6px;
 }
+
 .input-container input:focus + label,
 .input-container input:not(:placeholder-shown) + label,
 .input-container select:focus + label,
@@ -169,7 +237,7 @@ body {
 .input-container textarea:not(:placeholder-shown) + label {
   top: -10px;
   left: 12px;
-  font-size:12.5px;
+  font-size: 12.5px;
   color: var(--primary);
 }
 
@@ -178,13 +246,18 @@ body {
 #remarks:not(:placeholder-shown) + label {
   top: -10px;
   left: 12px;
-  font-size:12.5px;
+  font-size: 12.5px;
   color: var(--primary);
 }
 
-/* Placeholder */
-::placeholder { color: rgba(0,0,0,0.28); transition: color 0.3s ease; }
-[data-theme="dark"] ::placeholder { color: rgba(255,255,255,0.25); }
+/* Placeholder styling */
+::placeholder {
+  color: rgba(0,0,0,0.28);
+  transition: color var(--transition-speed) ease;
+}
+[data-theme="dark"] ::placeholder {
+  color: rgba(255,255,255,0.25);
+}
 
 /* ===================================================
    FILE INPUT
@@ -201,21 +274,26 @@ input[type="file"] {
    SUBMIT BUTTON
    =================================================== */
 button.submit-btn {
-  width:100%;
-  padding:14px;
+  width: 100%;
+  padding: 14px;
   background: var(--primary);
-  color:#fff;
-  font-size:16px;
-  font-weight:600;
-  border:none;
-  border-radius:12px;
-  cursor:pointer;
-  position:relative;
-  transition: transform .2s ease, background .3s ease, box-shadow .3s ease, opacity .3s ease;
-  overflow:hidden;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
 }
-button.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-button.submit-btn:active { transform:scale(0.97); }
+button.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+button.submit-btn:active {
+  transform: scale(0.97);
+}
 
 /* Success + Error states */
 button.submit-btn.success {
@@ -223,79 +301,60 @@ button.submit-btn.success {
   animation: bounce 0.6s cubic-bezier(0.68,-0.55,0.27,1.55);
 }
 button.submit-btn.error {
-  background: var(--popup-error) !important;
+  background: var(--error) !important;
   animation: ripple-fade 0.8s ease-out;
-}
-
-/* ===================================================
-   ANIMATIONS
-   =================================================== */
-@keyframes bounce {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.15); }
-  50%  { transform: scale(0.95); }
-  70%  { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-@keyframes ripple-fade {
-  0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.5); }
-  100% { box-shadow: 0 0 0 25px rgba(255,77,77,0); }
 }
 
 /* ===================================================
    POPUP
    =================================================== */
 .form-popup {
-  position:fixed;
-  top:20px; right:20px;
+  position: fixed;
+  top: 20px; right: 20px;
   background: var(--popup-bg);
   color: #fff;
-  padding:14px 20px;
-  border-radius:12px;
+  padding: 14px 20px;
+  border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-  font-weight:600;
-  display:none;
-  z-index:1200;
+  font-weight: 600;
+  display: none;
+  z-index: 1200;
   transform: translateY(-20px);
-  opacity:0;
+  opacity: 0;
   animation: popupFade 0.5s ease forwards;
 }
-.form-popup.error { background: var(--popup-error); }
-@keyframes popupFade {
-  from { opacity:0; transform: translateY(-20px); }
-  to { opacity:1; transform: translateY(0); }
+.form-popup.error {
+  background: var(--popup-error);
 }
 
 /* ===================================================
-   TEXTAREA
+   ANIMATIONS
    =================================================== */
-textarea {
-  min-height: 90px;
-  line-height: 1.5;
-  resize: vertical;
-  padding:14px 16px;
-  border:1px solid #ccc;
-  border-radius:10px;
-  background: var(--form-bg);
-  color: var(--text);
-  font-size:15.5px;
-  transition: border-color .25s ease, box-shadow .25s ease;
+@keyframes bounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.15); }
+  50% { transform: scale(0.95); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
-textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 5px rgba(0,123,255,0.12);
-  outline:none;
+@keyframes ripple-fade {
+  0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.5); }
+  100% { box-shadow: 0 0 0 25px rgba(255,77,77,0); }
+}
+@keyframes popupFade {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===================================================
    RESPONSIVE
    =================================================== */
 @media (max-width: 820px) {
-  .form-container { padding:20px; width:96%; }
-  .input-container { margin:14px 0; }
-  .site-header { padding:12px 18px; }
+  .form-container { padding: 20px; width: 96%; }
+  .input-container { margin: 14px 0; }
+  .site-header { padding: 12px 18px; }
 }
 @media (max-width: 480px) {
-  .form-container h1 { font-size:22px; }
-  button.submit-btn { font-size:15px; padding:12px; }
+  .form-container h1 { font-size: 22px; }
+  button.submit-btn { font-size: 15px; padding: 12px; }
 }
