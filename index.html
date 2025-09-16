@@ -3,332 +3,269 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VBook</title>
+  <title>VBook Visitor Form</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="form-style.css">
-
-  <!-- Favicons -->
+  <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
   <link rel="shortcut icon" href="icons/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
-  <!-- PWA Manifest -->
+  <!-- Manifest for PWA -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Theme color for browsers -->
-  <meta name="theme-color" content="#f5f5f5">
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="form-style.css">
 
+  <!-- Inline Styles for crucial floating-label and header transparency -->
   <style>
-    /* Glassy iOS-style Header */
+    /* ============================
+       Glassy sticky header
+    ============================ */
     .site-header {
       position: sticky;
-      top: 0;
-      width: 100%;
-      padding: 15px 24px;
-      background: rgba(255, 255, 255, 0.6);
+      top:0;
+      width:100%;
+      padding:15px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background: rgba(255,255,255,0.6);
       backdrop-filter: blur(12px) saturate(180%);
-      -webkit-backdrop-filter: blur(12px) saturate(180%);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      box-shadow:0 4px 12px rgba(0,0,0,0.05);
+      z-index:1000;
       transition: background 0.4s ease, color 0.4s ease;
     }
+
     [data-theme="dark"] .site-header {
-      background: rgba(30, 30, 30, 0.55);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(30,30,30,0.55);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* Floating Labels Fix */
+    /* ============================
+       Floating labels
+    ============================ */
     .input-container {
       position: relative;
       margin: 16px 0;
     }
     .input-container input,
-    .input-container textarea,
-    .input-container select {
+    .input-container select,
+    .input-container textarea {
       width: 100%;
-      padding: 12px;
+      padding: 14px 16px;
+      font-size: 15.5px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      background: transparent;
-      font-size: 16px;
+      border-radius: 10px;
+      background: #fff;
       outline: none;
       transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
     .input-container label {
       position: absolute;
-      top: 20px;
-      left: 8px;
-      font-size: 18px;
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%);
+      font-size: 15.5px;
       color: #777;
       pointer-events: none;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
+      background: #fff;
+      padding: 0 6px;
+      border-radius: 4px;
     }
     .input-container input:focus + label,
     .input-container input:not(:placeholder-shown) + label,
-    .input-container textarea:focus + label,
-    .input-container textarea:not(:placeholder-shown) + label,
     .input-container select:focus + label,
-    .input-container select:valid + label {
-      top: -6px;
-      left: 10px;
+    .input-container select:valid + label,
+    .input-container textarea:focus + label,
+    .input-container textarea:not(:placeholder-shown) + label {
+      top: -8px;
+      left: 12px;
       font-size: 12px;
-      color: var(--primary, #007bff);
-      background: var(--bg, #fff);
-      padding: 0 4px;
-      border-radius: 4px;
-    }
-    #remarks:valid + label,
-    #remarks:not(:placeholder-shown) + label {
-      top: -6px;
-      left: 10px;
-      font-size: 12px;
-      color: var(--primary, #007bff);
-      background: var(--bg, #fff);
-      padding: 0 4px;
-      border-radius: 4px;
-    }
-    [data-theme="dark"] .input-container label {
-      background: #1a1a1a;
-      color: #aaa;
+      color: var(--primary, #28a745); /* green when filled */
     }
 
-    /* Invalid glow */
-    .invalid {
-      border-color: red !important;
-      box-shadow: 0 0 0 5px rgba(255,0,0,0.25) !important;
+    /* Phone validation glow */
+    .input-container input.phone-input:focus {
+      border-color: red;
+      box-shadow: 0 0 5px 2px rgba(255,0,0,0.5);
     }
+    .input-container input.phone-input.valid {
+      border-color: green;
+      box-shadow: 0 0 5px 2px rgba(0,255,0,0.5);
+    }
+
+    /* Submit button style */
+    .submit-btn {
+      width:100%;
+      padding:14px;
+      background: var(--primary,#28a745);
+      color:#fff;
+      font-weight:600;
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .2s ease, box-shadow .3s ease;
+      margin-top: 10px;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .submit-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Floating label for textarea always when filled */
+    #remarks:valid + label,
+    #remarks:not(:placeholder-shown) + label {
+      top: -8px;
+      left: 12px;
+      font-size: 12px;
+      color: var(--primary, #28a745);
+    }
+
   </style>
 </head>
 <body>
-
-<header class="site-header">
-  <div class="header-left">
-    <p>
-      <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" style="text-decoration:none; color:inherit; font-weight:600;">
-        Sahil Kalra
-      </a> | +91 9646290118
-    </p>
-  </div>
-
-  <!-- Dark/Light Mode Toggle -->
-  <div class="theme-toggle">
-    <input type="checkbox" id="darkModeSwitch">
-    <label for="darkModeSwitch" class="switch"></label>
-  </div>
-</header>
-
-<main class="form-container">
-  <h1>Visitor Form</h1>
-  <form id="customerForm" autocomplete="off">
-    <!-- Event Name -->
-    <div class="input-container">
-      <input type="text" name="eventName" id="eventName" placeholder=" ">
-      <label for="eventName">Event Name</label>
+  <!-- ============================
+       HEADER
+  ============================ -->
+  <header class="site-header">
+    <div class="header-left">
+      <p>
+        <a href="https://www.linkedin.com/in/skalra1999/" target="_blank">Sahil Kalra</a> | +91 9646290118
+      </p>
     </div>
-
-    <!-- Name -->
-    <div class="input-container">
-      <input type="text" name="name" id="name" placeholder=" " required>
-      <label for="name">Name *</label>
+    <div class="theme-toggle">
+      <input type="checkbox" id="darkModeSwitch">
+      <label for="darkModeSwitch" class="switch"></label>
     </div>
+  </header>
 
-    <!-- Phone -->
-    <div class="input-container">
-      <input type="tel" name="phone" id="phone" placeholder=" " required>
-      <label for="phone">Phone *</label>
-    </div>
+  <!-- ============================
+       FORM CONTAINER
+  ============================ -->
+  <main class="form-container">
+    <h1>Visitor Form</h1>
+    <form id="customerForm" autocomplete="off">
+      <!-- Event Name -->
+      <div class="input-container">
+        <input type="text" name="eventName" id="eventName" placeholder=" ">
+        <label for="eventName">Event Name</label>
+      </div>
 
-    <!-- Email -->
-    <div class="input-container">
-      <input type="email" name="email" id="email" placeholder=" ">
-      <label for="email">Email</label>
-    </div>
+      <!-- Name -->
+      <div class="input-container">
+        <input type="text" name="name" id="name" placeholder=" " required>
+        <label for="name">Name *</label>
+      </div>
 
-    <!-- Company -->
-    <div class="input-container">
-      <input type="text" name="company" id="company" placeholder=" ">
-      <label for="company">Company</label>
-    </div>
+      <!-- Phone -->
+      <div class="input-container">
+        <input type="tel" name="phone" id="phone" placeholder=" " class="phone-input" required>
+        <label for="phone">Phone *</label>
+      </div>
 
-    <!-- Designation -->
-    <div class="input-container">
-      <select id="designation" name="designation">
-        <option value="">Select Designation</option>
-        <option value="Executive">Executive</option>
-        <option value="Manager">Manager</option>
-        <option value="CEO">CEO</option>
-        <option value="Founder">Founder</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="designationOther" name="designationOther" placeholder="Enter your designation" style="display:none;">
-    </div>
+      <!-- Email -->
+      <div class="input-container">
+        <input type="email" name="email" id="email" placeholder=" ">
+        <label for="email">Email</label>
+      </div>
 
-    <!-- Country -->
-    <div class="input-container">
-      <select id="country" name="country">
-        <option value="India" selected>India</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
-    </div>
+      <!-- Company -->
+      <div class="input-container">
+        <input type="text" name="company" id="company" placeholder=" ">
+        <label for="company">Company</label>
+      </div>
 
-    <!-- State -->
-    <div class="input-container">
-      <select id="state" name="state">
-        <option value="">Select State</option>
-      </select>
-      <input type="text" id="stateOther" name="stateOther" placeholder="Enter state" style="display:none;">
-    </div>
+      <!-- Designation -->
+      <div class="input-container">
+        <select id="designation" name="designation">
+          <option value="">Select Designation</option>
+          <option value="Executive">Executive</option>
+          <option value="Manager">Manager</option>
+          <option value="CEO">CEO</option>
+          <option value="Founder">Founder</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="designationOther" name="designationOther" placeholder="Enter your designation" style="display:none;">
+      </div>
 
-    <!-- City -->
-    <div class="input-container">
-      <select id="city" name="city">
-        <option value="">Select City</option>
-      </select>
-      <input type="text" id="cityOther" name="cityOther" placeholder="Enter city" style="display:none;">
-    </div>
+      <!-- Country -->
+      <div class="input-container">
+        <select id="country" name="country">
+          <option value="India" selected>India</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="countryOther" name="countryOther" placeholder="Enter country" style="display:none;">
+      </div>
 
-    <!-- Business Type -->
-    <div class="input-container">
-      <select id="business" name="business">
-        <option value="">Select Business</option>
-        <option value="Employee">Employee</option>
-        <option value="Trader">Trader </option>
-        <option value="Exporter">Exporter</option>
-        <option value="E-commerce">E-commerce</option>
-        <option value="Certification Services">Certification Services</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
-    </div>
+      <!-- State -->
+      <div class="input-container">
+        <select id="state" name="state">
+          <option value="">Select State</option>
+        </select>
+        <input type="text" id="stateOther" name="stateOther" placeholder="Enter state" style="display:none;">
+      </div>
 
-    <!-- Visiting Card Front -->
-    <div class="input-container">
-      <input type="file" name="vcFront" id="vcFront" accept="image/*">
-      <label for="vcFront">Visiting Card (Front)</label>
-    </div>
+      <!-- City -->
+      <div class="input-container">
+        <select id="city" name="city">
+          <option value="">Select City</option>
+        </select>
+        <input type="text" id="cityOther" name="cityOther" placeholder="Enter city" style="display:none;">
+      </div>
 
-    <!-- Visiting Card Back -->
-    <div class="input-container">
-      <input type="file" name="vcBack" id="vcBack" accept="image/*">
-      <label for="vcBack">Visiting Card (Back)</label>
-    </div>
+      <!-- Business Type -->
+      <div class="input-container">
+        <select id="business" name="business">
+          <option value="">Select Business</option>
+          <option value="Employee">Employee</option>
+          <option value="Trader">Trader</option>
+          <option value="Exporter">Exporter</option>
+          <option value="E-commerce">E-commerce</option>
+          <option value="Certification Services">Certification Services</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="businessOther" name="businessOther" placeholder="Enter business type" style="display:none;">
+      </div>
 
-    <!-- Remarks / Comments -->
-    <div class="input-container">
-      <textarea id="remarks" name="remarks" placeholder=" " rows="3"></textarea>
-      <label for="remarks">Remarks / Comments</label>
-    </div>
+      <!-- Visiting Card Front -->
+      <div class="input-container">
+        <input type="file" name="vcFront" id="vcFront" accept="image/*">
+        <label for="vcFront">Visiting Card (Front)</label>
+      </div>
 
-    <!-- Hidden Location Inputs -->
-    <input type="hidden" id="latitude" name="latitude">
-    <input type="hidden" id="longitude" name="longitude">
+      <!-- Visiting Card Back -->
+      <div class="input-container">
+        <input type="file" name="vcBack" id="vcBack" accept="image/*">
+        <label for="vcBack">Visiting Card (Back)</label>
+      </div>
 
-    <button type="submit" class="submit-btn">Submit</button>
-  </form>
-</main>
+      <!-- Remarks / Comments -->
+      <div class="input-container">
+        <textarea id="remarks" name="remarks" placeholder=" " rows="3"></textarea>
+        <label for="remarks">Remarks / Comments</label>
+      </div>
 
-<!-- Popup -->
-<div id="formPopup" class="form-popup">Form submitted successfully!</div>
+      <!-- Hidden Inputs for Location -->
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
 
-<!-- Scripts -->
-<script src="form-script.js" defer></script>
-<script>
-  // Auto location capture
-  function autoCaptureLocation() {
-    const latInput = document.getElementById("latitude");
-    const lonInput = document.getElementById("longitude");
-    if ("geolocation" in navigator) {
-      const storedLat = localStorage.getItem("lastLatitude");
-      const storedLon = localStorage.getItem("lastLongitude");
-      if (storedLat && storedLon) {
-        latInput.value = storedLat;
-        lonInput.value = storedLon;
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          latInput.value = pos.coords.latitude;
-          lonInput.value = pos.coords.longitude;
-          localStorage.setItem("lastLatitude", pos.coords.latitude);
-          localStorage.setItem("lastLongitude", pos.coords.longitude);
-        },
-        err => console.warn("Location access denied:", err.message),
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    }
-  }
-  autoCaptureLocation();
-  setInterval(autoCaptureLocation, 30000);
+      <!-- Submit -->
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+  </main>
 
-  // Dark/Light toggle with haptic feedback + meta theme color change
-  const toggle = document.getElementById("darkModeSwitch");
-  const root = document.documentElement;
-  const themeMeta = document.querySelector('meta[name="theme-color"]');
-  if(localStorage.getItem("theme") === "dark"){
-    root.setAttribute("data-theme", "dark");
-    toggle.checked = true;
-    themeMeta.setAttribute("content", "#121212");
-  }
-  toggle.addEventListener("change", () => {
-    if (navigator.vibrate) navigator.vibrate(15);
-    if(toggle.checked){
-      root.setAttribute("data-theme", "dark");
-      localStorage.setItem("theme", "dark");
-      themeMeta.setAttribute("content", "#121212");
-    } else {
-      root.setAttribute("data-theme", "light");
-      localStorage.setItem("theme", "light");
-      themeMeta.setAttribute("content", "#f5f5f5");
-    }
-  });
+  <!-- Popup Message -->
+  <div id="formPopup" class="form-popup">Form submitted successfully!</div>
 
-  // Auto www. + .com for company
-  document.getElementById("company").addEventListener("blur", function(){
-    let val = this.value.trim();
-    if(val && !val.startsWith("www.")) val = "www." + val;
-    if(val && !val.endsWith(".com")) val = val + ".com";
-    this.value = val;
-  });
-
-  // Phone validation (India only)
-  const phoneInput = document.getElementById("phone");
-  const countrySelect = document.getElementById("country");
-  phoneInput.addEventListener("input", function(){
-    if(countrySelect.value === "India"){
-      if(this.value.replace(/\D/g, "").length < 10){
-        this.classList.add("invalid");
-      } else {
-        this.classList.remove("invalid");
-      }
-    } else {
-      this.classList.remove("invalid");
-    }
-  });
-
-  // Prevent form submit if invalid
-  document.getElementById("customerForm").addEventListener("submit", function(e){
-    if(countrySelect.value === "India" && phoneInput.value.replace(/\D/g, "").length < 10){
-      e.preventDefault();
-      phoneInput.classList.add("invalid");
-      alert("Please enter a valid 10-digit phone number for India.");
-    }
-  });
-
-  // Register Service Worker
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-      .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-      .catch(err => console.error('❌ SW registration failed:', err));
-    });
-  }
-</script>
+  <!-- ============================
+       SCRIPT SECTION
+  ============================ -->
+  <script src="form-script.js" defer></script>
 </body>
 </html>
