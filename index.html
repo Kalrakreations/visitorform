@@ -1,201 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- 
-    =============================
-    FINAL FORM HTML DOCUMENT
-    =============================
-    Features included in this HTML:
-    1. Transparent Header with iOS-style Dark/Light Theme Toggle
-    2. Form fields with floating labels (except Country, State, City, Designation)
-    3. Country dropdown defaults to India (green glow only)
-    4. States + 4–6 main cities listed (expandable later)
-    5. Phone validation (10 digits required for India)
-    6. Blue glow on focus, red glow on invalid, green glow on valid
-    7. Submit button with ripple effect, loader animation, success animation
-    8. Integrated with Google Apps Script endpoint
-    9. Offline support with service worker + offline.html
-    10. Fully structured and commented for easy understanding
-
-    File Dependencies:
-    - style.css       → External stylesheet for design & animations
-    - script.js       → Handles form validation, glow effects, ripple, and API submission
-    - sw.js           → Service Worker for offline support
-    - offline.html    → Page shown when offline
-    - manifest.json   → PWA manifest for installable app
-    
-    Author: [Sahil Kalra]
-    Date: Final Version
-  -->
+  <!-- =============================================================
+       FINAL FORM HTML FILE
+       =============================================================
+       Features:
+       1. Responsive, modern form with transparent header.
+       2. Light/Dark theme toggle with iOS-style animated sun/moon.
+       3. Input glow effects:
+          - Blue glow on focus
+          - Red glow on invalid
+          - Green glow on valid (e.g., 10-digit Indian phone number)
+       4. Dropdowns:
+          - Country (default: India)
+          - State & City (auto-populated, only active if relevant)
+          - Designation & Business Type (mapped to Department + Assigned Person)
+       5. Submit Button:
+          - Ripple effect
+          - Shows “Submitting…” + animated spinner
+          - Turns green with “Success” after submission
+       6. Offline Support:
+          - Service worker + manifest + offline.html (linked separately)
+       ============================================================= -->
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visitor Registration Form</title>
+  <title>Visitor Form - Final Version</title>
+
+  <!-- Link external CSS -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- PWA manifest -->
   <link rel="manifest" href="manifest.json">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+
 </head>
 <body>
-  <!-- =========================
-       HEADER WITH THEME TOGGLE
-       ========================= -->
-  <header class="header">
-    <h1 class="form-title">Visitor Registration</h1>
-    <!-- iOS-style toggle with animated moon/sun -->
-    <div class="theme-toggle" id="themeToggle">
-      <div class="toggle-track">
-        <div class="toggle-thumb">
-          <span class="icon sun">☀️</span>
-          <span class="icon moon">🌙</span>
-        </div>
-      </div>
+  <!-- =============================================================
+       HEADER SECTION
+       ============================================================= -->
+  <header class="app-header">
+    <h1>Visitor Registration Form</h1>
+    <!-- Theme Toggle Switch -->
+    <div class="theme-toggle">
+      <input type="checkbox" id="themeSwitch">
+      <label for="themeSwitch" class="toggle-label">
+        <span class="toggle-sun">☀️</span>
+        <span class="toggle-moon">🌙</span>
+      </label>
     </div>
   </header>
 
-  <!-- =========================
-       FORM START
-       ========================= -->
+  <!-- =============================================================
+       MAIN FORM
+       ============================================================= -->
   <main>
-    <form id="visitorForm" 
-          action="https://script.google.com/macros/s/AKfycbzY9kqgmXX6Xr-0mFS3SCMPGf3vGgj2r4iSs1F7JeUdPSXUP92GqwqwLZI_ag7tLi1tYA/exec" 
-          method="POST" 
-          autocomplete="off">
+    <form id="visitorForm" method="POST" action="https://script.google.com/macros/s/AKfycbzY9kqgmXX6Xr-0mFS3SCMPGf3vGgj2r4iSs1F7JeUdPSXUP92GqwqwLZI_ag7tLi1tYA/exec">
 
-      <!-- =========================
-           SECTION: PERSONAL INFO
-           ========================= -->
-      <section class="form-section">
-        <h2>Personal Information</h2>
-
-        <!-- Name -->
-        <div class="form-group">
-          <input type="text" id="name" name="Name" required>
-          <label for="name">Full Name</label>
-        </div>
-
-        <!-- Email -->
-        <div class="form-group">
-          <input type="email" id="email" name="Email" required>
-          <label for="email">Email</label>
-        </div>
-
-        <!-- Phone -->
-        <div class="form-group">
-          <input type="tel" id="phone" name="Phone" maxlength="10" required>
-          <label for="phone">Phone (10 digits for India)</label>
-        </div>
-      </section>
-
-      <!-- =========================
-           SECTION: COMPANY INFO
-           ========================= -->
-      <section class="form-section">
-        <h2>Company Information</h2>
-
-        <!-- Designation (no floating label) -->
-        <div class="form-group no-float">
-          <label for="designation">Designation</label>
-          <input type="text" id="designation" name="Designation" required>
-        </div>
-
-        <!-- Business Type (auto-assign dept/person) -->
-        <div class="form-group">
-          <label for="businessType">Business Type</label>
-          <select id="businessType" name="BusinessType" required>
-            <option value="">-- Select Business Type --</option>
-            <option value="Exporter">Exporter</option>
-            <option value="International Certification">International Certification</option>
-            <option value="Digital Marketing">Digital Marketing</option>
-            <option value="Ecommerce Services">Ecommerce Services</option>
-            <option value="Trader">Trader</option>
-            <option value="Retailer">Retailer</option>
-            <option value="Wholesaler">Wholesaler</option>
-            <option value="Distributor">Distributor</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Quality">Quality</option>
-            <option value="Hotels">Hotels</option>
-            <option value="HOReCa">HOReCa</option>
-          </select>
-        </div>
-
-        <!-- Auto-filled Department (hidden but stored) -->
-        <input type="hidden" id="department" name="Department">
-        <input type="hidden" id="assignedPerson" name="AssignedPerson">
-      </section>
-
-      <!-- =========================
-           SECTION: LOCATION INFO
-           ========================= -->
-      <section class="form-section">
-        <h2>Location Information</h2>
-
-        <!-- Country (default India) -->
-        <div class="form-group no-float">
-          <label for="country">Country</label>
-          <select id="country" name="Country" required>
-            <option value="India" selected>India</option>
-            <option value="USA">USA</option>
-            <option value="UK">United Kingdom</option>
-            <option value="Germany">Germany</option>
-            <option value="Australia">Australia</option>
-            <option value="Canada">Canada</option>
-          </select>
-        </div>
-
-        <!-- State (works only for India) -->
-        <div class="form-group no-float">
-          <label for="state">State</label>
-          <select id="state" name="State">
-            <option value="">-- Select State --</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Maharashtra">Maharashtra</option>
-            <option value="Karnataka">Karnataka</option>
-            <option value="Tamil Nadu">Tamil Nadu</option>
-            <option value="West Bengal">West Bengal</option>
-          </select>
-        </div>
-
-        <!-- City (works for all countries, limited for demo) -->
-        <div class="form-group no-float">
-          <label for="city">City</label>
-          <select id="city" name="City" required>
-            <option value="">-- Select City --</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Bangalore">Bangalore</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Kolkata">Kolkata</option>
-            <option value="Hyderabad">Hyderabad</option>
-          </select>
-        </div>
-      </section>
-
-      <!-- =========================
-           SECTION: REMARKS
-           ========================= -->
-      <section class="form-section">
-        <h2>Additional Information</h2>
-
-        <!-- Remarks -->
-        <div class="form-group">
-          <textarea id="remarks" name="Remarks" rows="4"></textarea>
-          <label for="remarks">Remarks (Optional)</label>
-        </div>
-      </section>
-
-      <!-- =========================
-           SUBMIT BUTTON WITH RIPPLE
-           ========================= -->
-      <div class="form-actions">
-        <button type="submit" id="submitBtn" class="ripple-btn">
-          Submit
-        </button>
+      <!-- Name -->
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your full name" required>
       </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+      </div>
+
+      <!-- Country -->
+      <div class="form-group">
+        <label for="country">Country</label>
+        <select id="country" name="country" required></select>
+      </div>
+
+      <!-- State -->
+      <div class="form-group">
+        <label for="state">State</label>
+        <select id="state" name="state"></select>
+      </div>
+
+      <!-- City -->
+      <div class="form-group">
+        <label for="city">City</label>
+        <select id="city" name="city"></select>
+      </div>
+
+      <!-- Designation -->
+      <div class="form-group">
+        <label for="designation">Designation</label>
+        <select id="designation" name="designation" required>
+          <option value="">Select your designation</option>
+          <option value="Owner">Owner</option>
+          <option value="Manager">Manager</option>
+          <option value="Executive">Executive</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- Business Type -->
+      <div class="form-group">
+        <label for="businessType">Business Type</label>
+        <select id="businessType" name="businessType" required>
+          <option value="">Select business type</option>
+          <option value="Exporter">Exporter</option>
+          <option value="International Certification">International Certification</option>
+          <option value="Digital Marketing">Digital Marketing</option>
+          <option value="Ecommerce Services">Ecommerce Services</option>
+          <option value="Trader">Trader</option>
+          <option value="Retailer">Retailer</option>
+          <option value="Wholesaler">Wholesaler</option>
+          <option value="Distributor">Distributor</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Quality">Quality</option>
+          <option value="Hotels">Hotels</option>
+          <option value="HOReCa">HOReCa</option>
+        </select>
+      </div>
+
+      <!-- Hidden Department + Assigned Person -->
+      <input type="hidden" id="department" name="department">
+      <input type="hidden" id="assignedPerson" name="assignedPerson">
+
+      <!-- Remarks -->
+      <div class="form-group">
+        <label for="remarks">Remarks</label>
+        <textarea id="remarks" name="remarks" placeholder="Additional notes..."></textarea>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="submitBtn" class="ripple">Submit</button>
     </form>
   </main>
 
-  <!-- =========================
+  <!-- =============================================================
        SCRIPTS
-       ========================= -->
+       ============================================================= -->
   <script src="script.js"></script>
 </body>
 </html>
