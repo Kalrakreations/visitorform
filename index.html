@@ -21,7 +21,7 @@
   <meta name="theme-color" content="#f5f5f5">
 
   <style>
-    /* ---------- Glassy iOS-style Header ---------- */
+    /* Glassy iOS-style Header */
     .site-header {
       position: sticky;
       top: 0;
@@ -38,18 +38,16 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       transition: background 0.4s ease, color 0.4s ease;
     }
-
     [data-theme="dark"] .site-header {
       background: rgba(30, 30, 30, 0.55);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* ---------- Floating Labels Fix ---------- */
+    /* Floating Labels Fix */
     .input-container {
       position: relative;
       margin: 16px 0;
     }
-
     .input-container input,
     .input-container textarea,
     .input-container select {
@@ -60,8 +58,8 @@
       background: transparent;
       font-size: 16px;
       outline: none;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
-
     .input-container label {
       position: absolute;
       top: 20px;
@@ -71,7 +69,6 @@
       pointer-events: none;
       transition: all 0.3s ease;
     }
-
     .input-container input:focus + label,
     .input-container input:not(:placeholder-shown) + label,
     .input-container textarea:focus + label,
@@ -86,8 +83,6 @@
       padding: 0 4px;
       border-radius: 4px;
     }
-
-    /* Always float remarks if filled */
     #remarks:valid + label,
     #remarks:not(:placeholder-shown) + label {
       top: -6px;
@@ -98,11 +93,15 @@
       padding: 0 4px;
       border-radius: 4px;
     }
-
-    /* Dark Mode Fix */
     [data-theme="dark"] .input-container label {
       background: #1a1a1a;
       color: #aaa;
+    }
+
+    /* Invalid glow */
+    .invalid {
+      border-color: red !important;
+      box-shadow: 0 0 0 5px rgba(255,0,0,0.25) !important;
     }
   </style>
 </head>
@@ -268,25 +267,61 @@
   autoCaptureLocation();
   setInterval(autoCaptureLocation, 30000);
 
-  // Dark/Light toggle with haptic feedback
+  // Dark/Light toggle with haptic feedback + meta theme color change
   const toggle = document.getElementById("darkModeSwitch");
   const root = document.documentElement;
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
   if(localStorage.getItem("theme") === "dark"){
     root.setAttribute("data-theme", "dark");
     toggle.checked = true;
+    themeMeta.setAttribute("content", "#121212");
   }
   toggle.addEventListener("change", () => {
-    if (navigator.vibrate) navigator.vibrate(15); // short haptic feedback
+    if (navigator.vibrate) navigator.vibrate(15);
     if(toggle.checked){
       root.setAttribute("data-theme", "dark");
       localStorage.setItem("theme", "dark");
+      themeMeta.setAttribute("content", "#121212");
     } else {
       root.setAttribute("data-theme", "light");
       localStorage.setItem("theme", "light");
+      themeMeta.setAttribute("content", "#f5f5f5");
     }
   });
 
-  // Register Service Worker for PWA
+  // Auto www. + .com for company
+  document.getElementById("company").addEventListener("blur", function(){
+    let val = this.value.trim();
+    if(val && !val.startsWith("www.")) val = "www." + val;
+    if(val && !val.endsWith(".com")) val = val + ".com";
+    this.value = val;
+  });
+
+  // Phone validation (India only)
+  const phoneInput = document.getElementById("phone");
+  const countrySelect = document.getElementById("country");
+  phoneInput.addEventListener("input", function(){
+    if(countrySelect.value === "India"){
+      if(this.value.replace(/\D/g, "").length < 10){
+        this.classList.add("invalid");
+      } else {
+        this.classList.remove("invalid");
+      }
+    } else {
+      this.classList.remove("invalid");
+    }
+  });
+
+  // Prevent form submit if invalid
+  document.getElementById("customerForm").addEventListener("submit", function(e){
+    if(countrySelect.value === "India" && phoneInput.value.replace(/\D/g, "").length < 10){
+      e.preventDefault();
+      phoneInput.classList.add("invalid");
+      alert("Please enter a valid 10-digit phone number for India.");
+    }
+  });
+
+  // Register Service Worker
   if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('service-worker.js')
@@ -297,12 +332,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
