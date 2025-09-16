@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const city = document.getElementById('city');
 
   function populateCountries() {
-    const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Other"];
+    const countries = ["India", "United States", "United Kingdom", "Canada", "Australia", "Saudi Arabia" "Other"];
     country.innerHTML = "";
     countries.forEach(c => {
       country.insertAdjacentHTML('beforeend', `<option value="${c}" ${c === "India" ? "selected": ""}>${c}</option>`);
@@ -748,6 +748,7 @@ toggle.addEventListener("change", () => {
 /* =========================================================================
    End of script.js
    ========================================================================= */
+
 
 
 
