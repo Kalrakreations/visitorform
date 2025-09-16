@@ -17,6 +17,7 @@
   --icon-moon: #a6a6a6;
   --glass-light: rgba(255, 255, 255, 0.6);
   --glass-dark: rgba(30, 30, 30, 0.55);
+  --invalid: #ff3b30;
 }
 
 /* ---------- Dark mode overrides ---------- */
@@ -32,6 +33,7 @@
   --shadow: 0 8px 30px rgba(0,0,0,0.6);
   --icon-sun: #666;
   --icon-moon: #ccc;
+  --invalid: #ff6b6b;
 }
 
 /* ---------- Reset & base ---------- */
@@ -77,13 +79,9 @@ body {
 .header-left a { text-decoration:none; color:inherit; font-weight:600; }
 
 /* ===================================================
-   THEME TOGGLE (Grey Apple style with icons)
+   THEME TOGGLE
    =================================================== */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.theme-toggle { display: flex; align-items: center; gap: 10px; }
 .theme-toggle input { display:none; }
 .switch {
   width:52px; height:28px;
@@ -105,34 +103,11 @@ body {
               background 0.35s ease, box-shadow 0.35s ease;
   box-shadow:0 2px 6px rgba(0,0,0,0.25);
 }
-.theme-toggle input:checked + .switch {
-  background: var(--primary);
-}
+.theme-toggle input:checked + .switch { background: var(--primary); }
 .theme-toggle input:checked + .switch::after {
   transform: translateX(24px);
   background: #fff;
 }
-
-/* Sun & Moon icons */
-.icon-sun, .icon-moon {
-  font-size: 18px;
-  position:absolute;
-  top:50%;
-  transform: translateY(-50%);
-  transition: all 0.4s ease;
-}
-.icon-sun {
-  left:8px;
-  color: var(--icon-sun);
-  opacity:1;
-}
-.icon-moon {
-  right:8px;
-  color: var(--icon-moon);
-  opacity:0;
-}
-.theme-toggle input:checked ~ .icon-sun { opacity:0; transform: translateY(-50%) scale(0.8); }
-.theme-toggle input:checked ~ .icon-moon { opacity:1; transform: translateY(-50%) scale(1); }
 
 /* ===================================================
    FORM CONTAINER
@@ -145,7 +120,6 @@ body {
   padding: 28px 36px;
   border-radius: 16px;
   box-shadow: var(--shadow);
-  position: relative;
   transition: background 0.4s ease, box-shadow 0.4s ease;
 }
 .form-container h1 {
@@ -160,10 +134,7 @@ body {
 /* ===================================================
    INPUTS + FLOATING LABEL
    =================================================== */
-.input-container {
-  position:relative;
-  margin:18px 0;
-}
+.input-container { position:relative; margin:18px 0; }
 .input-container input,
 .input-container select,
 .input-container textarea {
@@ -184,7 +155,19 @@ body {
   box-shadow: 0 0 0 5px rgba(0,123,255,0.12);
 }
 
-/* Floating label styling */
+/* Invalid input glow (for phone <10 digits) */
+input.invalid {
+  border-color: var(--invalid) !important;
+  box-shadow: 0 0 0 4px rgba(255,59,48,0.35) !important;
+  animation: pulseInvalid 1s infinite;
+}
+@keyframes pulseInvalid {
+  0% { box-shadow: 0 0 0 0 rgba(255,59,48,0.35); }
+  70% { box-shadow: 0 0 0 6px rgba(255,59,48,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); }
+}
+
+/* Floating label */
 .input-container label {
   position:absolute;
   left:16px;
@@ -209,7 +192,7 @@ body {
   color: var(--primary);
 }
 
-/* Force remarks label always float when filled */
+/* Force remarks floating */
 #remarks:valid + label,
 #remarks:not(:placeholder-shown) + label {
   top: -10px;
@@ -218,23 +201,8 @@ body {
   color: var(--primary);
 }
 
-/* Placeholder */
-::placeholder { color: rgba(0,0,0,0.28); transition: color 0.3s ease; }
-[data-theme="dark"] ::placeholder { color: rgba(255,255,255,0.25); }
-
 /* ===================================================
-   FILE INPUT
-   =================================================== */
-input[type="file"] {
-  padding: 10px;
-  font-size: 15px;
-  color: var(--text);
-  background: transparent;
-  border-radius: 6px;
-}
-
-/* ===================================================
-   SUBMIT BUTTON
+   BUTTON
    =================================================== */
 button.submit-btn {
   width:100%;
@@ -246,61 +214,11 @@ button.submit-btn {
   border:none;
   border-radius:12px;
   cursor:pointer;
-  position:relative;
   transition: transform .2s ease, background .3s ease, box-shadow .3s ease, opacity .3s ease;
   overflow:hidden;
 }
 button.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 button.submit-btn:active { transform:scale(0.97); }
-
-/* Success + Error states */
-button.submit-btn.success {
-  background: var(--success) !important;
-  animation: bounce 0.6s cubic-bezier(0.68,-0.55,0.27,1.55);
-}
-button.submit-btn.error {
-  background: var(--popup-error) !important;
-  animation: ripple-fade 0.8s ease-out;
-}
-
-/* Loading */
-button.submit-btn.loading {
-  opacity:0.75;
-  cursor:wait;
-}
-button.submit-btn.loading::after {
-  content:"";
-  position:absolute;
-  width:20px; height:20px;
-  border:3px solid rgba(255,255,255,0.85);
-  border-top-color: transparent;
-  border-radius:50%;
-  left:50%; top:50%;
-  transform:translate(-50%,-50%);
-  opacity:0;
-  animation: spin 1s linear infinite, fadeIn 0.4s ease forwards;
-}
-button.submit-btn::after { transition: opacity 0.3s ease-out; opacity:0; }
-
-/* ===================================================
-   ANIMATIONS
-   =================================================== */
-@keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-@keyframes bounce {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.15); }
-  50%  { transform: scale(0.95); }
-  70%  { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-@keyframes ripple-fade {
-  0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.5); }
-  100% { box-shadow: 0 0 0 25px rgba(255,77,77,0); }
-}
 
 /* ===================================================
    POPUP
@@ -324,27 +242,6 @@ button.submit-btn::after { transition: opacity 0.3s ease-out; opacity:0; }
 @keyframes popupFade {
   from { opacity:0; transform: translateY(-20px); }
   to { opacity:1; transform: translateY(0); }
-}
-
-/* ===================================================
-   TEXTAREA
-   =================================================== */
-textarea {
-  min-height: 90px;
-  line-height: 1.5;
-  resize: vertical;
-  padding:14px 16px;
-  border:1px solid #ccc;
-  border-radius:10px;
-  background: var(--form-bg);
-  color: var(--text);
-  font-size:15.5px;
-  transition: border-color .25s ease, box-shadow .25s ease;
-}
-textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 5px rgba(0,123,255,0.12);
-  outline:none;
 }
 
 /* ===================================================
