@@ -1,155 +1,1303 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visitor Form</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VBook — Visitor Form</title>
 
-  <!-- ===================================================
-       CSS LINK (Inline or separate can be used)
-       We'll send full CSS after this
-  =================================================== -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Theme color (will be updated dynamically by script) -->
+  <meta name="theme-color" content="#f5f5f5">
 
-  <!-- Favicon -->
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <!-- ====================
+       Inline CSS
+       (Comprehensive, readable, contains variables & comments)
+       ==================== -->
+  <style>
+  /* ===================================================
+     Visitor Form — CSS (all in one)
+     - Theme variables (light default)
+     - iOS glass header
+     - Floating labels
+     - Focus / valid / invalid glows
+     - Ripple + button animations
+     - Responsive rules
+     =================================================== */
 
-  <!-- ===================================================
-       Comments:
-       - This HTML represents the visitor registration form.
-       - It works with script.js and style.css to provide:
-         * Theme toggle (light/dark)
-         * Pre-filled country/state/city
-         * Phone validation & color glow
-         * Department assignment
-         * Submit button ripple & spinner animation
-  =================================================== -->
+  /* ---------- Theme variables (light default) ---------- */
+  :root{
+    --bg: #f5f7fa;
+    --form-bg: #ffffff;
+    --text: #222;
+    --muted: #8f96a0;
+    --primary: #007bff;   /* blue for focus state */
+    --success: #28a745;   /* green for success/valid */
+    --danger: #ff4d4d;    /* red for invalid */
+    --glass-light: rgba(255,255,255,0.6);
+    --glass-dark: rgba(30,30,30,0.55);
+    --shadow: 0 8px 20px rgba(0,0,0,0.08);
+    --header-height: 64px;
+
+    --toggle-width: 52px;
+    --toggle-height: 28px;
+    --toggle-knob-size: 22px;
+  }
+
+  /* ---------- Dark mode overrides ---------- */
+  [data-theme="dark"] {
+    --bg: #0f1112;
+    --form-bg: #131516;
+    --text: #f1f1f1;
+    --muted: #a6a6a6;
+    --primary: #66aaff;
+    --shadow: 0 8px 30px rgba(0,0,0,0.6);
+    --glass-light: rgba(255,255,255,0.04);
+    --glass-dark: rgba(20,20,20,0.6);
+  }
+
+  /* ---------- Reset & base ---------- */
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body {
+    font-family: "Inter", "Segoe UI", Roboto, system-ui, -apple-system, "Poppins", sans-serif;
+    background: linear-gradient(180deg, var(--bg), #e9eef6 140%);
+    color: var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 18px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    transition: background .35s ease, color .35s ease;
+  }
+
+  /* ---------- Site header (iOS glass) ---------- */
+  .site-header {
+    position: sticky;
+    top: 12px;
+    left: 0;
+    right: 0;
+    max-width: 1100px;
+    width: calc(100% - 36px);
+    margin: 0 auto 22px auto;
+    height: var(--header-height);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 12px 18px;
+    background: var(--glass-light);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.45);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    transition: background .35s ease, color .35s ease, box-shadow .35s ease;
+    z-index: 40;
+  }
+  [data-theme="dark"] .site-header {
+    background: var(--glass-dark);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  }
+  .header-left { display:flex; align-items:center; gap:10px; }
+  .header-left p { font-weight:600; color:var(--text); margin:0; }
+  .header-left a { color:inherit; text-decoration:none; font-weight:700; }
+
+  /* ---------- Theme toggle wrapper ---------- */
+  .theme-toggle {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    position:relative;
+  }
+  .theme-toggle .icons {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:18px;
+    color: #9aa0a6;
+    user-select:none;
+  }
+
+  /* Toggle (Apple style) */
+  .theme-toggle input[type="checkbox"] { display:none; }
+  .switch {
+    width:var(--toggle-width);
+    height:var(--toggle-height);
+    background:#d0d5dd;
+    border-radius:999px;
+    position:relative;
+    display:inline-block;
+    vertical-align:middle;
+    cursor:pointer;
+    transition: background .25s ease;
+  }
+  .switch::after {
+    content:"";
+    position:absolute;
+    left:3px; top:3px;
+    width:var(--toggle-knob-size);
+    height:var(--toggle-knob-size);
+    background:#fff;
+    border-radius:50%;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    transition: transform .35s cubic-bezier(.2,.9,.35,1), background .25s ease;
+  }
+  .theme-toggle input[type="checkbox"]:checked + .switch {
+    background: rgba(255,255,255,0.12);
+  }
+  .theme-toggle input[type="checkbox"]:checked + .switch::after {
+    transform: translateX(calc(var(--toggle-width) - var(--toggle-knob-size) - 6px));
+  }
+
+  /* Sun & Moon icons that animate (grey) */
+  .theme-icon {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px; height:18px;
+    opacity:0.95;
+    transition: transform .42s cubic-bezier(.22,.9,.38,1), opacity .32s ease;
+    color:#9aa0a6;
+    pointer-events:none;
+  }
+
+  /* slide icons based on checkbox using sibling selectors in JS by toggling classes (we animate with JS) */
+
+  /* ---------- Form container ---------- */
+  .form-wrap {
+    width:100%;
+    max-width: 1100px;
+    background: var(--form-bg);
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: var(--shadow);
+    transition: background .35s ease, box-shadow .35s ease;
+    margin-bottom: 60px;
+  }
+  [data-theme="dark"] .form-wrap { box-shadow: 0 18px 40px rgba(0,0,0,0.5); }
+
+  .form-head {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .form-head h1 {
+    font-size:22px;
+    margin:0;
+    color:var(--text);
+  }
+  .form-sub { color:var(--muted); font-size:13px; margin-top:6px; }
+
+  /* ---------- Grid layout for fields ---------- */
+  .grid {
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px 18px;
+  }
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Input container (floating label) ---------- */
+  .input-container {
+    position:relative;
+    margin:0;
+  }
+
+  .input-container input,
+  .input-container select,
+  .input-container textarea {
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,0.12);
+    background:transparent;
+    font-size:15px;
+    color:var(--text);
+    outline:none;
+    transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+  }
+
+  /* Specific style for selects to avoid the floating label covering */
+  .input-container select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right:36px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                      linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+  }
+
+  .input-container label {
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--muted);
+    font-size:15px;
+    padding: 0 6px;
+    background: transparent;
+    pointer-events:none;
+    transition: all .22s ease;
+  }
+
+  /* Float label when focused or has value (we also apply .filled class from JS) */
+  .input-container.filled label,
+  .input-container input:focus + label,
+  .input-container textarea:focus + label,
+  .input-container select:focus + label {
+    top:-10px;
+    font-size:12px;
+    color:var(--primary);
+    background: var(--form-bg);
+    left:12px;
+  }
+
+  /* Make selects that have value look "filled" visually (JS will add .filled) */
+  .input-container.filled select {
+    border-color:var(--primary);
+    box-shadow: 0 6px 18px rgba(0,123,255,0.06);
+  }
+
+  /* ---------- Placeholder colors ---------- */
+  ::placeholder { color: rgba(0,0,0,0.26); transition: color .2s ease; }
+  [data-theme="dark"] ::placeholder { color: rgba(255,255,255,0.18); }
+
+  /* ---------- Focus styles (blue) - only when focused ---------- */
+  .input-container input:focus,
+  .input-container select:focus,
+  .input-container textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 6px 18px rgba(0,123,255,0.08);
+  }
+
+  /* ---------- Valid / Invalid states (green/red). Controlled by JS. ---------- */
+  .input-container.valid input,
+  .input-container.valid select,
+  .input-container.valid textarea {
+    border-color: var(--success) !important;
+    box-shadow: 0 8px 22px rgba(40,167,69,0.12);
+  }
+  .input-container.invalid input,
+  .input-container.invalid select,
+  .input-container.invalid textarea {
+    border-color: var(--danger) !important;
+    box-shadow: 0 8px 22px rgba(255,77,77,0.12);
+  }
+
+  /* The phone field will have special classes applied by JS:
+     - .phone-focus (blue glow while focused)
+     - .phone-invalid (red glow if invalid while India)
+     - .phone-valid (green glow when 10 digits for India)
+  */
+  .input-container.phone-focus input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 8px 26px rgba(0,123,255,0.12);
+  }
+
+  /* ---------- Textarea specifics ---------- */
+  textarea {
+    min-height:86px;
+    resize:vertical;
+    font-size:15px;
+    padding:12px 14px;
+  }
+
+  /* ---------- File input smaller text ---------- */
+  input[type="file"] { font-size:13px; padding:8px; }
+
+  /* ---------- Submit button / ripple ---------- */
+  .actions { margin-top:18px; display:flex; gap:14px; align-items:center; }
+  button.submit-btn {
+    position:relative;
+    overflow:hidden;
+    border: none;
+    padding:12px 16px;
+    border-radius:10px;
+    background: linear-gradient(90deg,var(--primary), #0056d6);
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+    min-width:160px;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    justify-content:center;
+    transition: transform .18s ease, box-shadow .2s ease, background .28s ease;
+  }
+  button.submit-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+  button.submit-btn:active { transform: translateY(0); }
+
+  /* spinner & ripple helper elements appended by JS */
+  .submit-spinner {
+    width:18px; height:18px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.85);
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+
+  /* ripple element style */
+  .ripple {
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+    transform: translate(-50%,-50%) scale(0.001);
+    opacity:0.7;
+    animation: rippleExpand 520ms ease-out forwards;
+    background: rgba(255,255,255,0.14);
+  }
+  @keyframes rippleExpand {
+    to { transform: translate(-50%,-50%) scale(16); opacity:0; }
+  }
+
+  /* Success state (green) after submission */
+  .submit-success {
+    background: linear-gradient(90deg,var(--success), #1f8b3b) !important;
+    box-shadow: 0 12px 28px rgba(40,167,69,0.18) !important;
+  }
+
+  /* Disabled style */
+  button[disabled] { opacity:0.65; cursor:not-allowed; transform:none; }
+
+  /* ---------- Popup toast ---------- */
+  .toast {
+    position: fixed;
+    right: 18px;
+    bottom: 24px;
+    background: rgba(0,0,0,0.85);
+    color:white;
+    padding:12px 16px;
+    border-radius:10px;
+    font-weight:600;
+    display:none;
+    z-index:9999;
+  }
+  .toast.show { display:block; animation: toastIn .28s ease; }
+  @keyframes toastIn { from { transform: translateY(8px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+
+  /* ---------- Small helpers ---------- */
+  .muted { color:var(--muted); font-size:13px; }
+  .full { grid-column: 1 / -1; }
+
+  /* ---------- Responsive adjustments ---------- */
+  @media (max-width:560px) {
+    body { padding:12px; }
+    .site-header { margin: 0 0 18px 0; width: calc(100% - 24px); }
+    .form-wrap { padding:18px; }
+    .header-left p { font-size:14px; }
+  }
+  </style>
 </head>
 <body>
-  <!-- ===================== HEADER ===================== -->
-  <header class="site-header">
+
+  <!-- ===========================
+       Header (iOS glass) 
+       =========================== -->
+  <header class="site-header" role="banner">
     <div class="header-left">
-      <p>Visitor Registration Form</p>
+      <p>
+        <a href="https://www.linkedin.com/in/skalra1999/" target="_blank" rel="noopener noreferrer">Sahil Kalra</a>
+        &nbsp;|&nbsp;<span class="muted">+91 9646290118</span>
+      </p>
     </div>
-    <div class="theme-toggle">
-      <!-- Hidden checkbox for theme toggle -->
-      <input type="checkbox" id="themeCheckbox">
-      <!-- iOS style switch -->
-      <label class="switch" for="themeCheckbox"></label>
-      <!-- Sun & Moon icons -->
-      <i class="icon-sun">☀️</i>
-      <i class="icon-moon">🌙</i>
+
+    <div class="theme-toggle" aria-hidden="false" title="Toggle theme">
+      <!-- Sun icon (left) -->
+      <span id="iconSun" class="theme-icon" aria-hidden="true" title="Light mode">
+        <!-- simple svg sun -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>
+        </svg>
+      </span>
+
+      <!-- Toggle checkbox & switch -->
+      <input id="themeToggleCheckbox" type="checkbox" aria-label="Toggle dark mode">
+      <label for="themeToggleCheckbox" class="switch" role="switch" aria-checked="false"></label>
+
+      <!-- Moon icon (right) -->
+      <span id="iconMoon" class="theme-icon" aria-hidden="true" title="Dark mode">
+        <!-- simple svg moon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+        </svg>
+      </span>
     </div>
   </header>
 
-  <!-- ===================== FORM CONTAINER ===================== -->
-  <main>
-    <div class="form-container">
-      <h1>Register as Visitor</h1>
-      <form id="visitorForm">
+  <!-- ===========================
+       Main Form Container
+       =========================== -->
+  <main class="form-wrap" role="main">
+    <div class="form-head">
+      <div>
+        <h1>Visitor Form</h1>
+        <div class="form-sub muted">Fill visitor details — offline-capable, phone validation, theme aware</div>
+      </div>
+    </div>
+
+    <form id="visitorForm" autocomplete="off" novalidate>
+      <div class="grid">
+
         <!-- Event Name -->
-        <div class="input-container">
-          <input type="text" id="eventName" required placeholder=" ">
+        <div class="input-container" id="ic-event">
+          <input id="eventName" name="eventName" type="text" placeholder=" " />
           <label for="eventName">Event Name</label>
         </div>
 
         <!-- Name -->
-        <div class="input-container">
-          <input type="text" id="name" required placeholder=" ">
-          <label for="name">Full Name</label>
+        <div class="input-container" id="ic-name">
+          <input id="name" name="name" type="text" placeholder=" " required />
+          <label for="name">Name *</label>
         </div>
 
         <!-- Phone -->
-        <div class="input-container">
-          <input type="tel" id="phone" required placeholder=" ">
-          <label for="phone">Phone</label>
+        <div class="input-container" id="ic-phone">
+          <input id="phone" name="phone" type="tel" placeholder=" " inputmode="tel" />
+          <label for="phone">Phone *</label>
+          <div class="muted" style="font-size:12px; margin-top:6px;">If India is selected, phone must be 10 digits.</div>
         </div>
 
         <!-- Email -->
-        <div class="input-container">
-          <input type="email" id="email" required placeholder=" ">
+        <div class="input-container" id="ic-email">
+          <input id="email" name="email" type="email" placeholder=" " />
           <label for="email">Email</label>
         </div>
 
         <!-- Company -->
-        <div class="input-container">
-          <input type="text" id="company" placeholder=" ">
+        <div class="input-container" id="ic-company">
+          <input id="company" name="company" type="text" placeholder=" " />
           <label for="company">Company</label>
         </div>
 
-        <!-- Designation -->
-        <div class="input-container">
-          <input type="text" id="designation" placeholder="Manager">
+        <!-- Website (REMOVED as requested earlier) - omitted -->
+
+        <!-- Designation (select + other) -->
+        <div class="input-container" id="ic-designation">
+          <select id="designation" name="designation" >
+            <option value="">Select Designation</option>
+            <option>Executive</option>
+            <option>Manager</option>
+            <option>CEO</option>
+            <option>Founder</option>
+            <option>Other</option>
+          </select>
           <label for="designation">Designation</label>
+          <input id="designationOther" name="designationOther" type="text" placeholder="Enter designation" style="display:none; margin-top:8px;" />
         </div>
 
         <!-- Country -->
-        <div class="input-container">
-          <select id="country">
-            <!-- Populated dynamically via JS -->
+        <div class="input-container" id="ic-country">
+          <select id="country" name="country" >
+            <!-- Populated by JS, India selected by default -->
           </select>
           <label for="country">Country</label>
+          <input id="countryOther" name="countryOther" type="text" placeholder="Enter Country" style="display:none; margin-top:8px;" />
         </div>
 
         <!-- State -->
-        <div class="input-container">
-          <select id="state">
-            <!-- Populated dynamically via JS -->
+        <div class="input-container" id="ic-state">
+          <select id="state" name="state" >
+            <option value="">Select State</option>
+            <!-- populated by JS -->
           </select>
           <label for="state">State</label>
+          <input id="stateOther" name="stateOther" type="text" placeholder="Enter State" style="display:none; margin-top:8px;" />
         </div>
 
         <!-- City -->
-        <div class="input-container">
-          <select id="city">
-            <!-- Populated dynamically via JS -->
+        <div class="input-container" id="ic-city">
+          <select id="city" name="city" >
+            <option value="">Select City</option>
+            <!-- populated by JS -->
           </select>
           <label for="city">City</label>
+          <input id="cityOther" name="cityOther" type="text" placeholder="Enter City" style="display:none; margin-top:8px;" />
         </div>
 
-        <!-- Business -->
-        <div class="input-container">
-          <input type="text" id="business" placeholder=" ">
+        <!-- Business Type -->
+        <div class="input-container" id="ic-business">
+          <select id="business" name="business" >
+            <option value="">Select Business</option>
+            <option>Employee</option>
+            <option>Trader</option>
+            <option>Retailer</option>
+            <option>Wholesaler</option>
+            <option>Distributor</option>
+            <option>Exporter</option>
+            <option>E-commerce</option>
+            <option>Digital Marketing</option>
+            <option>Certification Services</option>
+            <option>Hotels</option>
+            <option>HoReCa</option>
+            <option>Quality</option>
+            <option>Marketing</option>
+            <option>Other</option>
+          </select>
           <label for="business">Business Type</label>
+          <input id="businessOther" name="businessOther" type="text" placeholder="Enter business type" style="display:none; margin-top:8px;" />
         </div>
 
-        <!-- Department (auto-assigned) -->
+        <!-- Department (auto fill, hidden or visible as read-only) -->
         <div class="input-container">
-          <input type="text" id="department" readonly placeholder=" ">
-          <label for="department">Department</label>
+          <input id="department" name="department" type="text" placeholder=" " readonly />
+          <label for="department">Assigned Department</label>
         </div>
 
-        <!-- Assigned Person (auto-assigned) -->
+        <!-- Assigned Person (auto fill) -->
         <div class="input-container">
-          <input type="text" id="assignedPerson" readonly placeholder=" ">
+          <input id="assignedPerson" name="assignedPerson" type="text" placeholder=" " readonly />
           <label for="assignedPerson">Assigned Person</label>
         </div>
 
-        <!-- Remarks -->
+        <!-- Visiting Card Front -->
         <div class="input-container">
-          <textarea id="remarks" placeholder=" "></textarea>
-          <label for="remarks">Remarks</label>
+          <input id="vcFront" name="vcFront" type="file" accept="image/*" />
+          <label for="vcFront">Visiting Card (Front)</label>
         </div>
 
-        <!-- Latitude -->
+        <!-- Visiting Card Back -->
         <div class="input-container">
-          <input type="text" id="latitude" placeholder=" ">
-          <label for="latitude">Latitude</label>
+          <input id="vcBack" name="vcBack" type="file" accept="image/*" />
+          <label for="vcBack">Visiting Card (Back)</label>
         </div>
 
-        <!-- Longitude -->
-        <div class="input-container">
-          <input type="text" id="longitude" placeholder=" ">
-          <label for="longitude">Longitude</label>
+        <!-- Remarks (always floats when filled) -->
+        <div class="input-container full" id="ic-remarks">
+          <textarea id="remarks" name="remarks" placeholder=" "></textarea>
+          <label for="remarks">Remarks / Comments</label>
         </div>
 
-        <!-- Submit Button -->
-        <button type="submit" id="submitBtn" class="submit-btn">Submit</button>
-      </form>
-    </div>
+        <!-- Hidden geo inputs (auto-populated by JS) -->
+        <input type="hidden" id="latitude" name="latitude" />
+        <input type="hidden" id="longitude" name="longitude" />
+
+      </div> <!-- grid -->
+
+      <!-- Actions -->
+      <div class="actions">
+        <button id="submitBtn" type="submit" class="submit-btn" aria-live="polite">
+          <span id="submitText">Submit</span>
+        </button>
+        <div class="muted" style="align-self:center;">Auto-capture location & offline queue supported</div>
+      </div>
+    </form>
   </main>
 
-  <!-- ===================== JS SCRIPT ===================== -->
-  <script src="script.js"></script>
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ===========================
+       Inline JS (comprehensive, commented)
+       =========================== -->
+  <script>
+  /*************************************************************************
+   Visitor Form JS (single-file)
+   - Implementation notes:
+     * This script populates country/state/city fields, validates phone
+       for India (10 digits), controls the floating labels using .filled
+       class, applies green/red glows as required, handles theme toggle
+       with iOS-like sun/moon animation, provides ripple/spinner for submit,
+       prevents duplicate submissions (hashing), and queues offline submissions.
+     * Submit endpoint is your Google Apps Script WebApp. Replace WEBAPP_URL
+       if you have a different endpoint.
+   *************************************************************************/
+
+  (function(){
+    'use strict';
+
+    /* ---------------------------
+       Configuration / constants
+       --------------------------- */
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzY9kqgmXX6Xr-0mFS3SCMPGf3vGgj2r4iSs1F7JeUdPSXUP92GqwqwLZI_ag7tLi1tYA/exec";
+    // STORAGE KEYS
+    const LS_LAST_HASH = "vbook_last_submission_hash_v1";
+    const LS_OFFLINE_QUEUE = "vbook_offline_queue_v1";
+
+    /* ---------------------------
+       Element references
+       --------------------------- */
+    const doc = document;
+    const form = doc.getElementById('visitorForm');
+    const submitBtn = doc.getElementById('submitBtn');
+    const submitText = doc.getElementById('submitText');
+    const toast = doc.getElementById('toast');
+
+    const country = doc.getElementById('country');
+    const state = doc.getElementById('state');
+    const city = doc.getElementById('city');
+    const phoneInput = doc.getElementById('phone');
+    const businessInput = doc.getElementById('business');
+    const designationSelect = doc.getElementById('designation');
+
+    const departmentInput = doc.getElementById('department');
+    const assignedPersonInput = doc.getElementById('assignedPerson');
+
+    const themeToggleCheckbox = doc.getElementById('themeToggleCheckbox');
+    const iconSun = doc.getElementById('iconSun');
+    const iconMoon = doc.getElementById('iconMoon');
+
+    // list of countries (India default)
+    const countryList = ["India","United States","United Kingdom","Canada","Australia","Other"];
+
+    // Inline states & major cities for India (4-6 main cities each)
+    const statesAndCities = {
+      "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
+      "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat","Tawang","Ziro"],
+      "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat","Tezpur"],
+      "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur","Darbhanga"],
+      "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba","Jagdalpur"],
+      "Goa": ["Panaji","Margao","Vasco da Gama","Mapusa","Ponda"],
+      "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
+      "Haryana": ["Gurugram","Faridabad","Panipat","Hisar","Karnal"],
+      "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan","Kullu"],
+      "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro","Giridih"],
+      "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru","Belgaum"],
+      "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur","Kollam"],
+      "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
+      "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+      "Manipur": ["Imphal","Thoubal","Bishnupur","Churachandpur","Ukhrul"],
+      "Meghalaya": ["Shillong","Tura","Nongpoh","Nongstoin","Williamnagar"],
+      "Mizoram": ["Aizawl","Lunglei","Champhai","Serchhip","Kolasib"],
+      "Nagaland": ["Kohima","Dimapur","Mokokchung","Tuensang","Wokha"],
+      "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur","Berhampur"],
+      "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda"],
+      "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
+      "Sikkim": ["Gangtok","Geyzing","Namchi","Mangan","Pakyong"],
+      "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem"],
+      "Telangana": ["Hyderabad","Warangal","Nizamabad","Karimnagar","Khammam"],
+      "Tripura": ["Agartala","Udaipur","Dharmanagar","Kailasahar","Belonia"],
+      "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Noida"],
+      "Uttarakhand": ["Dehradun","Haridwar","Roorkee","Haldwani","Rishikesh"],
+      "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
+      "Chandigarh": ["Chandigarh","New Chandigarh"]
+    };
+
+    /* ---------------------------
+       Helper utilities
+       --------------------------- */
+
+    // stable stringify for objects (sorted keys) -> used for deduplication hash
+    function stableStringify(obj) {
+      if (!obj || typeof obj !== 'object') return String(obj);
+      const keys = Object.keys(obj).sort();
+      const res = {};
+      keys.forEach(k => res[k] = obj[k]);
+      return JSON.stringify(res);
+    }
+
+    // show toast
+    function showToast(message, timeout = 2800) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), timeout);
+    }
+
+    // compute simple hash (not crypto) of a string (for localStorage dedupe)
+    function simpleHash(str) {
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0).toString(16);
+    }
+
+    // read file input as base64 (first file only). Returns Promise resolving to {base64, name}
+    function readFileAsBase64(fileInput) {
+      return new Promise((resolve) => {
+        const fi = fileInput;
+        if (!fi || !fi.files || fi.files.length === 0) { resolve(null); return; }
+        const file = fi.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          // result is data:<type>;base64,<data>
+          const result = reader.result;
+          const base64 = result.split(',')[1];
+          resolve({ base64, name: file.name });
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // save offline queue to localStorage
+    function pushToOfflineQueue(obj) {
+      try {
+        const q = JSON.parse(localStorage.getItem(LS_OFFLINE_QUEUE) || "[]");
+        q.push(obj);
+        localStorage.setItem(LS_OFFLINE_QUEUE, JSON.stringify(q));
+      } catch (err) {
+        console.warn("Failed to save offline queue", err);
+      }
+    }
+
+    // attempt to flush offline queue
+    async function flushOfflineQueue() {
+      try {
+        const q = JSON.parse(localStorage.getItem(LS_OFFLINE_QUEUE) || "[]");
+        if (!Array.isArray(q) || q.length === 0) return;
+        // iterate and try to send each (best-effort)
+        for (let i = 0; i < q.length; i++) {
+          try {
+            const data = new URLSearchParams(q[i]).toString();
+            const res = await fetch(WEBAPP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: data
+            });
+            const text = await res.text();
+            if (text && text.indexOf('SUCCESS') !== -1) {
+              // remove first element, then continue
+              q.shift();
+              localStorage.setItem(LS_OFFLINE_QUEUE, JSON.stringify(q));
+              showToast("Queued submission synced");
+            } else {
+              // server didn't accept; stop to avoid burning bandwidth
+              break;
+            }
+          } catch (err) {
+            console.warn("Error while flushing queue", err);
+            break;
+          }
+        }
+      } catch (err) {
+        console.warn("flushOfflineQueue error", err);
+      }
+    }
+
+    // disable/enable the submit button
+    function setSubmitBusy(busy) {
+      if (busy) {
+        submitBtn.setAttribute('disabled', 'disabled');
+      } else {
+        submitBtn.removeAttribute('disabled');
+      }
+    }
+
+    /* ---------------------------
+       Populate Countries / States / Cities
+       --------------------------- */
+
+    function populateCountries() {
+      country.innerHTML = "";
+      countryList.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        if (c === "India") opt.selected = true; // India default
+        country.appendChild(opt);
+      });
+      // Mark container as filled for default India (this is the only automatic filled allowed)
+      markContainerFilled(country, true);
+      // default glow for country when India -> green
+      applyValidationVisual(country, country.value === 'India' ? 'valid' : null);
+    }
+
+    function populateStates() {
+      // if country is India we show states dropdown, otherwise hide/disable state and show only city text
+      state.innerHTML = "";
+      city.innerHTML = "";
+      if (country.value === "India") {
+        // show states
+        Object.keys(statesAndCities).forEach(st => {
+          const opt = document.createElement('option');
+          opt.value = st; opt.textContent = st;
+          state.appendChild(opt);
+        });
+        // add an "Other" option at end
+        const o = document.createElement('option'); o.value = "Other"; o.textContent = "Other";
+        state.appendChild(o);
+        // ensure visible / enabled
+        state.disabled = false;
+        city.disabled = false;
+        markContainerFilled(state, false);
+        markContainerFilled(city, false);
+      } else {
+        // Non-India: state is not used; encourage user to type countryOther or stateOther
+        state.disabled = true;
+        state.innerHTML = '<option value="">--</option>';
+        city.disabled = false;
+        city.innerHTML = '<option value="">Enter city (for non-India)</option>';
+        markContainerFilled(state, false);
+      }
+    }
+
+    function populateCitiesForState() {
+      city.innerHTML = "";
+      if (country.value === "India" && statesAndCities[state.value]) {
+        const arr = statesAndCities[state.value];
+        arr.forEach(cname => {
+          const opt = document.createElement('option');
+          opt.value = cname; opt.textContent = cname;
+          city.appendChild(opt);
+        });
+        const o = document.createElement('option'); o.value = "Other"; o.textContent = "Other";
+        city.appendChild(o);
+        city.disabled = false;
+      } else if (country.value !== "India") {
+        city.disabled = false;
+        city.innerHTML = '<option value="">Enter city</option>';
+      } else {
+        city.disabled = true;
+        city.innerHTML = '<option value="">--</option>';
+      }
+    }
+
+    /* ---------------------------
+       Floating label helpers (we rely on .filled on .input-container)
+       - JS will add/remove .filled to keep labels in expected position
+       --------------------------- */
+    function markContainerFilled(el, filled) {
+      const container = el.closest('.input-container');
+      if (!container) return;
+      if (filled) container.classList.add('filled'); else container.classList.remove('filled');
+    }
+
+    // set validation visual states for container
+    function applyValidationVisual(el, state) {
+      // state: null | 'valid' | 'invalid'
+      const container = el.closest('.input-container');
+      if (!container) return;
+      container.classList.remove('valid','invalid');
+      if (state === 'valid') container.classList.add('valid');
+      else if (state === 'invalid') container.classList.add('invalid');
+    }
+
+    /* ---------------------------
+       Phone validation logic
+       - Only when country === 'India' enforce 10 digits and show red/green glows
+       - Phone should not auto-glow; only show when user focuses or types
+       --------------------------- */
+    function validatePhoneField() {
+      const container = phoneInput.closest('.input-container');
+      const val = phoneInput.value.replace(/\D/g,'').trim(); // digits only
+      // In India, must be exactly 10 digits
+      if (country.value === 'India') {
+        if (val.length === 0) {
+          // not filled -> remove both states (no auto glow)
+          container.classList.remove('invalid','valid');
+        } else if (val.length === 10) {
+          // valid
+          container.classList.remove('invalid'); container.classList.add('valid');
+        } else {
+          // invalid (show red while typing/after blur)
+          container.classList.remove('valid'); container.classList.add('invalid');
+        }
+      } else {
+        // Non-India -> remove phone-specific indicators
+        container.classList.remove('valid','invalid');
+      }
+    }
+
+    /* ---------------------------
+       Business -> Department mapping (as requested)
+       mapping:
+       - Exporter / International Certification -> B2B -> Adhiraj
+       - Digital Marketing / E-commerce -> Ecommerce -> Sahil
+       - Trader / Retailer / Wholesaler / Distributor -> General Trade -> Amit
+       - Marketing -> Marketing -> Arsh
+       - Quality -> Quality -> Neha
+       - Hotels / HoReCa -> Sales -> Yogesh
+       --------------------------- */
+    function assignDepartmentForBusiness() {
+      const val = (businessInput.value || "").toLowerCase();
+      let dept = "", person = "";
+      if (val.indexOf('exporter') !== -1 || val.indexOf('certification') !== -1) {
+        dept = "B2B"; person = "Adhiraj";
+      } else if (val.indexOf('digital') !== -1 || val.indexOf('e-commerce') !== -1 || val.indexOf('ecommerce') !== -1) {
+        dept = "Ecommerce"; person = "Sahil";
+      } else if (['trader','retailer','wholesaler','distributor'].some(k => val.indexOf(k) !== -1)) {
+        dept = "General Trade"; person = "Amit";
+      } else if (val.indexOf('marketing') !== -1) {
+        dept = "Marketing"; person = "Arsh";
+      } else if (val.indexOf('quality') !== -1) {
+        dept = "Quality"; person = "Neha";
+      } else if (val.indexOf('hotel') !== -1 || val.indexOf('horeca') !== -1) {
+        dept = "Sales"; person = "Yogesh";
+      } else {
+        dept = ""; person = "";
+      }
+      departmentInput.value = dept;
+      assignedPersonInput.value = person;
+      // if dept assigned, mark container filled + valid visual
+      if (dept) {
+        markContainerFilled(departmentInput, true);
+        applyValidationVisual(departmentInput, 'valid');
+      } else {
+        markContainerFilled(departmentInput, false);
+        applyValidationVisual(departmentInput, null);
+      }
+    }
+
+    /* ---------------------------
+       Theme toggle + iOS style icon animation
+       - toggles data-theme attribute on document.documentElement
+       - animates sun & moon icons
+       - updates meta theme-color tag for mobile browsers
+       --------------------------- */
+    function setTheme(mode) {
+      const html = document.documentElement;
+      if (mode === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        themeToggleCheckbox.checked = true;
+        // animate icons (sun out, moon in)
+        iconSun.style.transform = 'rotate(-60deg) scale(.8)'; iconSun.style.opacity = '0';
+        iconMoon.style.transform = 'rotate(0deg) scale(1)'; iconMoon.style.opacity = '1';
+        updateMetaThemeColor('#0f1112');
+      } else {
+        html.setAttribute('data-theme', 'light');
+        themeToggleCheckbox.checked = false;
+        iconSun.style.transform = 'rotate(0deg) scale(1)'; iconSun.style.opacity = '1';
+        iconMoon.style.transform = 'rotate(60deg) scale(.8)'; iconMoon.style.opacity = '0';
+        updateMetaThemeColor('#f5f5f5');
+      }
+      localStorage.setItem('vbook_theme', mode);
+      // small haptic if available
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+
+    function updateMetaThemeColor(color) {
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', color);
+    }
+
+    /* ---------------------------
+       Prevent duplicate submission:
+       - compute a stable hash of the submission object
+       - compare with localStorage last submitted hash
+       - if identical, prevent submission and show toast
+       --------------------------- */
+    function isDuplicateSubmission(submissionObj) {
+      try {
+        const s = stableStringify(submissionObj);
+        const h = simpleHash(s);
+        const last = localStorage.getItem(LS_LAST_HASH) || '';
+        if (last && last === h) return true;
+        // not duplicate yet
+        return false;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function markSubmissionHash(submissionObj) {
+      try {
+        const s = stableStringify(submissionObj);
+        const h = simpleHash(s);
+        localStorage.setItem(LS_LAST_HASH, h);
+      } catch (err) {
+        console.warn("markSubmissionHash failed", err);
+      }
+    }
+
+    /* ---------------------------
+       Submit flow
+       - Validate fields (phone when India)
+       - Read files to base64
+       - Build FormData-like object (we send as application/x-www-form-urlencoded)
+       - Prevent duplicate submissions using localStorage hash
+       - If offline, push to local storage queue
+       - Provide ripple, spinner, and success animation on button
+       --------------------------- */
+    async function handleSubmit(ev) {
+      ev.preventDefault();
+
+      // Basic validations
+      // If India selected, phone must be 10 digits
+      if (country.value === 'India') {
+        const digits = phoneInput.value.replace(/\D/g,'');
+        if (digits.length !== 10) {
+          // mark invalid, prevent submit
+          applyValidationVisual(phoneInput, 'invalid');
+          phoneInput.focus();
+          showToast("Phone must be 10 digits for India");
+          return;
+        }
+      }
+
+      // gather form data into a plain object
+      const dataObj = {};
+      Array.from(form.elements).forEach(el => {
+        if (!el.name) return;
+        if (el.type === 'file') return; // handled separately below
+        dataObj[el.name] = el.value || "";
+      });
+
+      // prevent duplicate submission on refresh / repeated click
+      if (isDuplicateSubmission(dataObj)) {
+        showToast("This form appears to be already submitted (duplicate prevented).");
+        return;
+      }
+
+      // add timestamp client-side (server will also record server timestamp)
+      dataObj._clientTimestamp = new Date().toISOString();
+
+      // show button busy + small ripple at center
+      spawnRipple(submitBtn, submitBtn.getBoundingClientRect().width/2, submitBtn.getBoundingClientRect().height/2);
+
+      setSubmitBusy(true);
+      submitText.textContent = "Submitting...";
+
+      // read image files
+      const front = await readFileAsBase64(doc.getElementById('vcFront'));
+      const back = await readFileAsBase64(doc.getElementById('vcBack'));
+      if (front) { dataObj.vcFrontBase64 = front.base64; dataObj.vcFrontName = front.name; }
+      if (back) { dataObj.vcBackBase64 = back.base64; dataObj.vcBackName = back.name; }
+
+      // Build payload for application/x-www-form-urlencoded
+      const payload = new URLSearchParams();
+      Object.keys(dataObj).forEach(k => payload.append(k, dataObj[k]));
+
+      // If offline -> save to queue, inform user
+      if (!navigator.onLine) {
+        pushToOfflineQueue(dataObj);
+        setSubmitBusy(false);
+        submitText.textContent = "Saved offline";
+        showToast("You're offline — saved to queue and will sync when online");
+        markSubmissionHash(dataObj); // still mark hash to prevent accidental duplicate
+        setTimeout(() => { submitText.textContent = "Submit"; }, 1800);
+        return;
+      }
+
+      // Try send
+      try {
+        const res = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: payload.toString()
+        });
+        const textRes = await res.text();
+
+        if (textRes && textRes.indexOf("SUCCESS") !== -1) {
+          // success
+          submitText.textContent = "Successful";
+          submitBtn.classList.add('submit-success');
+          markSubmissionHash(dataObj); // mark as last successful submission
+          showToast("Form submitted successfully ✅");
+          // reset form (keep theme & other settings)
+          setTimeout(() => {
+            form.reset();
+            // reset visual states
+            resetAllVisualStates();
+            populateCountries();
+            populateStates();
+            populateCitiesForState();
+            submitBtn.classList.remove('submit-success');
+            submitText.textContent = "Submit";
+            setSubmitBusy(false);
+          }, 900);
+        } else if (textRes && textRes.indexOf("DUPLICATE") !== -1) {
+          showToast("Server detected duplicate — not saved");
+          setSubmitBusy(false);
+          submitText.textContent = "Submit";
+        } else {
+          // server returned something unexpected -> treat as failure and queue
+          pushToOfflineQueue(dataObj);
+          showToast("Submission failed, saved locally. Will retry.");
+          setSubmitBusy(false);
+          submitText.textContent = "Submit";
+        }
+      } catch (err) {
+        // network/server error -> add to queue
+        pushToOfflineQueue(dataObj);
+        showToast("Error sending — saved to queue for retry");
+        setSubmitBusy(false);
+        submitText.textContent = "Submit";
+      }
+    }
+
+    /* ---------------------------
+       Reset visual states helper
+       --------------------------- */
+    function resetAllVisualStates() {
+      // remove filled, valid, invalid states except country default
+      document.querySelectorAll('.input-container').forEach(c => {
+        c.classList.remove('filled','valid','invalid');
+      });
+      // but set country filled (India default)
+      markContainerFilled(country, true);
+      applyValidationVisual(country, country.value === 'India' ? 'valid' : null);
+    }
+
+    /* ---------------------------
+       Utility: spawn ripple on button click
+       --------------------------- */
+    function spawnRipple(button, x, y) {
+      const rect = button.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      // calculate x,y relative to button
+      ripple.style.left = (x) + 'px';
+      ripple.style.top = (y) + 'px';
+      ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
+      button.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 700);
+    }
+
+    /* ---------------------------
+       Event binding & initialization
+       --------------------------- */
+
+    // Populate countries, states, cities on load
+    populateCountries();
+    populateStates();
+    populateCitiesForState();
+
+    // Theme initialization from localStorage or system preference
+    const savedTheme = localStorage.getItem('vbook_theme');
+    if (savedTheme) setTheme(savedTheme);
+    else {
+      // prefer system dark
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(prefersDark ? 'dark' : 'light');
+    }
+
+    // Theme toggle click handler
+    themeToggleCheckbox.addEventListener('change', () => {
+      setTheme(themeToggleCheckbox.checked ? 'dark' : 'light');
+    });
+
+    // Country change behavior
+    country.addEventListener('change', (e) => {
+      const val = country.value;
+      // show/hide countryOther input
+      const countryOtherEl = doc.getElementById('countryOther');
+      if (val === 'Other') {
+        countryOtherEl.style.display = 'block';
+        markContainerFilled(country, true);
+      } else {
+        countryOtherEl.style.display = 'none';
+        markContainerFilled(country, true); // default selection counts as filled but only for country
+      }
+      // populate states/cities appropriately
+      populateStates();
+      populateCitiesForState();
+      // Visual: If India selected, color green; otherwise remove auto green
+      applyValidationVisual(country, val === 'India' ? 'valid' : null);
+    });
+
+    // State change -> populate cities
+    state.addEventListener('change', (e) => {
+      const val = state.value;
+      const stOther = doc.getElementById('stateOther');
+      if (val === 'Other') {
+        stOther.style.display = 'block';
+        markContainerFilled(state, true);
+      } else {
+        if (stOther) stOther.style.display = 'none';
+        markContainerFilled(state, val !== '');
+      }
+      populateCitiesForState();
+    });
+
+    // City change -> other handling
+    city.addEventListener('change', (e) => {
+      const val = city.value;
+      const cOther = doc.getElementById('cityOther');
+      if (val === 'Other') {
+        cOther.style.display = 'block';
+        markContainerFilled(city, true);
+      } else {
+        if (cOther) cOther.style.display = 'none';
+        markContainerFilled(city, val !== '');
+      }
+    });
+
+    // Designation select show other
+    designationSelect.addEventListener('change', () => {
+      const dOther = doc.getElementById('designationOther');
+      if (designationSelect.value === 'Other') dOther.style.display = 'block';
+      else dOther.style.display = 'none';
+      markContainerFilled(designationSelect, designationSelect.value !== '');
+    });
+
+    // Business select show other and assign department
+    businessInput.addEventListener('change', () => {
+      const bOther = doc.getElementById('businessOther');
+      if (businessInput.value === 'Other') bOther.style.display = 'block';
+      else bOther.style.display = 'none';
+      markContainerFilled(businessInput, businessInput.value !== '');
+      assignDepartmentForBusiness();
+    });
+
+    // Generic input listeners to add/remove .filled so labels float only after user interacts
+    const inputElements = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea');
+    inputElements.forEach(inp => {
+      inp.addEventListener('input', () => {
+        markContainerFilled(inp, inp.value.trim() !== '');
+      });
+      inp.addEventListener('blur', () => {
+        markContainerFilled(inp, inp.value.trim() !== '');
+      });
+      inp.addEventListener('focus', () => {
+        // add phone-focus if phone field
+        const container = inp.closest('.input-container');
+        if (inp.id === 'phone') container.classList.add('phone-focus');
+      });
+      inp.addEventListener('focusout', () => {
+        const container = inp.closest('.input-container');
+        if (inp.id === 'phone') container.classList.remove('phone-focus');
+      });
+    });
+
+    // Phone input special listeners (limits to digits)
+    phoneInput.addEventListener('input', (e) => {
+      // keep only digits
+      const start = phoneInput.selectionStart;
+      let digits = phoneInput.value.replace(/\D/g,'');
+      phoneInput.value = digits;
+      // update visual validation
+      validatePhoneField();
+    });
+    phoneInput.addEventListener('blur', () => validatePhoneField());
+    phoneInput.addEventListener('focus', () => {
+      // only show focus glow (blue), actual invalid/valid handled by validatePhoneField
+      const container = phoneInput.closest('.input-container');
+      container.classList.add('phone-focus');
+    });
+
+    // On load also attach validation for business -> department
+    assignDepartmentForBusiness();
+
+    // Form submit handler
+    form.addEventListener('submit', handleSubmit);
+
+    // Online/offline listeners to flush queue when back online
+    window.addEventListener('online', () => {
+      showToast("You are online — syncing local queue...");
+      flushOfflineQueue();
+    });
+
+    // Attempt to flush any queued items on startup
+    setTimeout(() => { flushOfflineQueue(); }, 600);
+
+    // Capture location (best-effort)
+    function captureLocation() {
+      const latInput = doc.getElementById('latitude');
+      const lonInput = doc.getElementById('longitude');
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition((pos) => {
+        latInput.value = pos.coords.latitude;
+        lonInput.value = pos.coords.longitude;
+      }, (err) => {
+        // ignore on failure but allow app to continue
+        console.warn("Geolocation error:", err && err.message);
+      }, { enableHighAccuracy:true, timeout:5000 });
+    }
+    captureLocation();
+
+    // Prevent accidental double SUBMIT via refresh: mark last hash on success (done in handleSubmit)
+    // The isDuplicateSubmission check prevents resubmission.
+
+    /* ========================= End Initialization ========================= */
+  })();
+  </script>
 </body>
 </html>
