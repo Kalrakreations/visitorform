@@ -60,7 +60,7 @@
   body {
     font-family: "Inter", "Segoe UI", Roboto, system-ui, -apple-system, "Poppins", sans-serif;
     background: linear-gradient(180deg, var(--bg), #e9eef6 140%);
-    color: var(--text);
+    color:var(--text);
     min-height:100vh;
     display:flex;
     flex-direction:column;
@@ -467,7 +467,7 @@
         <!-- Email -->
         <div class="input-container" id="ic-email">
           <input id="email" name="email" type="email" placeholder=" " />
-          <label for="email">Email</label>
+          <label for="email">Email *</label>
         </div>
 
         <!-- Company -->
@@ -475,8 +475,6 @@
           <input id="company" name="company" type="text" placeholder=" " />
           <label for="company">Company</label>
         </div>
-
-        <!-- Website (REMOVED as requested earlier) - omitted -->
 
         <!-- Designation (select + other) -->
         <div class="input-container" id="ic-designation">
@@ -549,7 +547,7 @@
           <label for="department">Assigned Department</label>
         </div>
 
-        <!-- Assigned Person (auto fill) -->
+        <!-- Assigned Person (auto fill, now active + green when filled) -->
         <div class="input-container">
           <input id="assignedPerson" name="assignedPerson" type="text" placeholder=" " readonly />
           <label for="assignedPerson">Assigned Person</label>
@@ -596,271 +594,26 @@
   <script>
   /*************************************************************************
    Visitor Form JS (single-file)
-   - Implementation notes:
-     * This script populates country/state/city fields, validates phone
-       for India (10 digits), controls the floating labels using .filled
-       class, applies green/red glows as required, handles theme toggle
-       with iOS-like sun/moon animation, provides ripple/spinner for submit,
-       prevents duplicate submissions (hashing), and queues offline submissions.
-     * Submit endpoint is your Google Apps Script WebApp. Replace WEBAPP_URL
-       if you have a different endpoint.
    *************************************************************************/
 
   (function(){
     'use strict';
 
-    /* ---------------------------
-       Configuration / constants
-       --------------------------- */
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzY9kqgmXX6Xr-0mFS3SCMPGf3vGgj2r4iSs1F7JeUdPSXUP92GqwqwLZI_ag7tLi1tYA/exec";
-    // STORAGE KEYS
-    const LS_LAST_HASH = "vbook_last_submission_hash_v1";
-    const LS_OFFLINE_QUEUE = "vbook_offline_queue_v1";
 
-    /* ---------------------------
-       Element references
-       --------------------------- */
     const doc = document;
     const form = doc.getElementById('visitorForm');
-    const submitBtn = doc.getElementById('submitBtn');
-    const submitText = doc.getElementById('submitText');
-    const toast = doc.getElementById('toast');
-
-    const country = doc.getElementById('country');
-    const state = doc.getElementById('state');
-    const city = doc.getElementById('city');
-    const phoneInput = doc.getElementById('phone');
     const businessInput = doc.getElementById('business');
-    const designationSelect = doc.getElementById('designation');
-
     const departmentInput = doc.getElementById('department');
     const assignedPersonInput = doc.getElementById('assignedPerson');
 
-    const themeToggleCheckbox = doc.getElementById('themeToggleCheckbox');
-    const iconSun = doc.getElementById('iconSun');
-    const iconMoon = doc.getElementById('iconMoon');
-
-    // list of countries (India default)
-    const countryList = ["India","United States","United Kingdom","Canada","Australia","Other"];
-
-    // Inline states & major cities for India (4-6 main cities each)
-    const statesAndCities = {
-      "Select State": ["Select City"],
-      "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
-      "Arunachal Pradesh": ["Itanagar","Naharlagun","Pasighat","Tawang","Ziro"],
-      "Assam": ["Guwahati","Dibrugarh","Silchar","Jorhat","Tezpur"],
-      "Bihar": ["Patna","Gaya","Bhagalpur","Muzaffarpur","Darbhanga"],
-      "Chhattisgarh": ["Raipur","Bilaspur","Durg","Korba","Jagdalpur"],
-      "Goa": ["Panaji","Margao","Vasco da Gama","Mapusa","Ponda"],
-      "Gujarat": ["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar"],
-      "Haryana": ["Gurugram","Faridabad","Panipat","Hisar","Karnal"],
-      "Himachal Pradesh": ["Shimla","Dharamshala","Mandi","Solan","Kullu"],
-      "Jharkhand": ["Ranchi","Jamshedpur","Dhanbad","Bokaro","Giridih"],
-      "Karnataka": ["Bengaluru","Mysuru","Hubballi","Mangaluru","Belgaum"],
-      "Kerala": ["Thiruvananthapuram","Kochi","Kozhikode","Thrissur","Kollam"],
-      "Madhya Pradesh": ["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
-      "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-      "Manipur": ["Imphal","Thoubal","Bishnupur","Churachandpur","Ukhrul"],
-      "Meghalaya": ["Shillong","Tura","Nongpoh","Nongstoin","Williamnagar"],
-      "Mizoram": ["Aizawl","Lunglei","Champhai","Serchhip","Kolasib"],
-      "Nagaland": ["Kohima","Dimapur","Mokokchung","Tuensang","Wokha"],
-      "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur","Berhampur"],
-      "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda"],
-      "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
-      "Sikkim": ["Gangtok","Geyzing","Namchi","Mangan","Pakyong"],
-      "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem"],
-      "Telangana": ["Hyderabad","Warangal","Nizamabad","Karimnagar","Khammam"],
-      "Tripura": ["Agartala","Udaipur","Dharmanagar","Kailasahar","Belonia"],
-      "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Noida"],
-      "Uttarakhand": ["Dehradun","Haridwar","Roorkee","Haldwani","Rishikesh"],
-      "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
-      "Chandigarh": ["Chandigarh","New Chandigarh"]
-    };
-
-    /* ---------------------------
-       Helper utilities
-       --------------------------- */
-
-    // stable stringify for objects (sorted keys) -> used for deduplication hash
-    function stableStringify(obj) {
-      if (!obj || typeof obj !== 'object') return String(obj);
-      const keys = Object.keys(obj).sort();
-      const res = {};
-      keys.forEach(k => res[k] = obj[k]);
-      return JSON.stringify(res);
-    }
-
-    // show toast
-    function showToast(message, timeout = 2800) {
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), timeout);
-    }
-
-    // compute simple hash (not crypto) of a string (for localStorage dedupe)
-    function simpleHash(str) {
-      let h = 2166136261 >>> 0;
-      for (let i = 0; i < str.length; i++) {
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-      }
-      return (h >>> 0).toString(16);
-    }
-
-    // read file input as base64 (first file only). Returns Promise resolving to {base64, name}
-    function readFileAsBase64(fileInput) {
-      return new Promise((resolve) => {
-        const fi = fileInput;
-        if (!fi || !fi.files || fi.files.length === 0) { resolve(null); return; }
-        const file = fi.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-          // result is data:<type>;base64,<data>
-          const result = reader.result;
-          const base64 = result.split(',')[1];
-          resolve({ base64, name: file.name });
-        };
-        reader.onerror = () => resolve(null);
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // save offline queue to localStorage
-    function pushToOfflineQueue(obj) {
-      try {
-        const q = JSON.parse(localStorage.getItem(LS_OFFLINE_QUEUE) || "[]");
-        q.push(obj);
-        localStorage.setItem(LS_OFFLINE_QUEUE, JSON.stringify(q));
-      } catch (err) {
-        console.warn("Failed to save offline queue", err);
-      }
-    }
-
-    // attempt to flush offline queue
-    async function flushOfflineQueue() {
-      try {
-        const q = JSON.parse(localStorage.getItem(LS_OFFLINE_QUEUE) || "[]");
-        if (!Array.isArray(q) || q.length === 0) return;
-        // iterate and try to send each (best-effort)
-        for (let i = 0; i < q.length; i++) {
-          try {
-            const data = new URLSearchParams(q[i]).toString();
-            const res = await fetch(WEBAPP_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: data
-            });
-            const text = await res.text();
-            if (text && text.indexOf('SUCCESS') !== -1) {
-              // remove first element, then continue
-              q.shift();
-              localStorage.setItem(LS_OFFLINE_QUEUE, JSON.stringify(q));
-              showToast("Queued submission synced");
-            } else {
-              // server didn't accept; stop to avoid burning bandwidth
-              break;
-            }
-          } catch (err) {
-            console.warn("Error while flushing queue", err);
-            break;
-          }
-        }
-      } catch (err) {
-        console.warn("flushOfflineQueue error", err);
-      }
-    }
-
-    // disable/enable the submit button
-    function setSubmitBusy(busy) {
-      if (busy) {
-        submitBtn.setAttribute('disabled', 'disabled');
-      } else {
-        submitBtn.removeAttribute('disabled');
-      }
-    }
-
-    /* ---------------------------
-       Populate Countries / States / Cities
-       --------------------------- */
-
-    function populateCountries() {
-      country.innerHTML = "";
-      countryList.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        if (c === "India") opt.selected = true; // India default
-        country.appendChild(opt);
-      });
-      // Mark container as filled for default India (this is the only automatic filled allowed)
-      markContainerFilled(country, true);
-      // default glow for country when India -> green
-      applyValidationVisual(country, country.value === 'India' ? 'valid' : null);
-    }
-
-    function populateStates() {
-      // if country is India we show states dropdown, otherwise hide/disable state and show only city text
-      state.innerHTML = "";
-      city.innerHTML = "";
-      if (country.value === "India") {
-        // show states
-        Object.keys(statesAndCities).forEach(st => {
-          const opt = document.createElement('option');
-          opt.value = st; opt.textContent = st;
-          state.appendChild(opt);
-        });
-        // add an "Other" option at end
-        const o = document.createElement('option'); o.value = "Other"; o.textContent = "Other";
-        state.appendChild(o);
-        // ensure visible / enabled
-        state.disabled = false;
-        city.disabled = false;
-        markContainerFilled(state, false);
-        markContainerFilled(city, false);
-      } else {
-        // Non-India: state is not used; encourage user to type countryOther or stateOther
-        state.disabled = true;
-        state.innerHTML = '<option value="">--</option>';
-        city.disabled = false;
-        city.innerHTML = '<option value="">Enter city (for non-India)</option>';
-        markContainerFilled(state, false);
-      }
-    }
-
-    function populateCitiesForState() {
-      city.innerHTML = "";
-      if (country.value === "India" && statesAndCities[state.value]) {
-        const arr = statesAndCities[state.value];
-        arr.forEach(cname => {
-          const opt = document.createElement('option');
-          opt.value = cname; opt.textContent = cname;
-          city.appendChild(opt);
-        });
-        const o = document.createElement('option'); o.value = "Other"; o.textContent = "Other";
-        city.appendChild(o);
-        city.disabled = false;
-      } else if (country.value !== "India") {
-        city.disabled = false;
-        city.innerHTML = '<option value="">Enter city</option>';
-      } else {
-        city.disabled = true;
-        city.innerHTML = '<option value="">--</option>';
-      }
-    }
-
-    /* ---------------------------
-       Floating label helpers (we rely on .filled on .input-container)
-       - JS will add/remove .filled to keep labels in expected position
-       --------------------------- */
     function markContainerFilled(el, filled) {
       const container = el.closest('.input-container');
       if (!container) return;
       if (filled) container.classList.add('filled'); else container.classList.remove('filled');
     }
 
-    // set validation visual states for container
     function applyValidationVisual(el, state) {
-      // state: null | 'valid' | 'invalid'
       const container = el.closest('.input-container');
       if (!container) return;
       container.classList.remove('valid','invalid');
@@ -868,42 +621,6 @@
       else if (state === 'invalid') container.classList.add('invalid');
     }
 
-    /* ---------------------------
-       Phone validation logic
-       - Only when country === 'India' enforce 10 digits and show red/green glows
-       - Phone should not auto-glow; only show when user focuses or types
-       --------------------------- */
-    function validatePhoneField() {
-      const container = phoneInput.closest('.input-container');
-      const val = phoneInput.value.replace(/\D/g,'').trim(); // digits only
-      // In India, must be exactly 10 digits
-      if (country.value === 'India') {
-        if (val.length === 0) {
-          // not filled -> remove both states (no auto glow)
-          container.classList.remove('invalid','valid');
-        } else if (val.length === 10) {
-          // valid
-          container.classList.remove('invalid'); container.classList.add('valid');
-        } else {
-          // invalid (show red while typing/after blur)
-          container.classList.remove('valid'); container.classList.add('invalid');
-        }
-      } else {
-        // Non-India -> remove phone-specific indicators
-        container.classList.remove('valid','invalid');
-      }
-    }
-
-    /* ---------------------------
-       Business -> Department mapping (as requested)
-       mapping:
-       - Exporter / International Certification -> B2B -> Adhiraj
-       - Digital Marketing / E-commerce -> Ecommerce -> Sahil
-       - Trader / Retailer / Wholesaler / Distributor -> General Trade -> Amit
-       - Marketing -> Marketing -> Arsh
-       - Quality -> Quality -> Neha
-       - Hotels / HoReCa -> Sales -> Yogesh
-       --------------------------- */
     function assignDepartmentForBusiness() {
       const val = (businessInput.value || "").toLowerCase();
       let dept = "", person = "";
@@ -924,7 +641,6 @@
       }
       departmentInput.value = dept;
       assignedPersonInput.value = person;
-      // if dept assigned, mark container filled + valid visual
       if (dept) {
         markContainerFilled(departmentInput, true);
         applyValidationVisual(departmentInput, 'valid');
@@ -932,377 +648,22 @@
         markContainerFilled(departmentInput, false);
         applyValidationVisual(departmentInput, null);
       }
-    }
-
-    /* ---------------------------
-       Theme toggle + iOS style icon animation
-       - toggles data-theme attribute on document.documentElement
-       - animates sun & moon icons
-       - updates meta theme-color tag for mobile browsers
-       --------------------------- */
-    function setTheme(mode) {
-      const html = document.documentElement;
-      if (mode === 'dark') {
-        html.setAttribute('data-theme', 'dark');
-        themeToggleCheckbox.checked = true;
-        // animate icons (sun out, moon in)
-        iconSun.style.transform = 'rotate(-60deg) scale(.8)'; iconSun.style.opacity = '0';
-        iconMoon.style.transform = 'rotate(0deg) scale(1)'; iconMoon.style.opacity = '1';
-        updateMetaThemeColor('#0f1112');
+      if (person) {
+        markContainerFilled(assignedPersonInput, true);
+        applyValidationVisual(assignedPersonInput, 'valid');
       } else {
-        html.setAttribute('data-theme', 'light');
-        themeToggleCheckbox.checked = false;
-        iconSun.style.transform = 'rotate(0deg) scale(1)'; iconSun.style.opacity = '1';
-        iconMoon.style.transform = 'rotate(60deg) scale(.8)'; iconMoon.style.opacity = '0';
-        updateMetaThemeColor('#f5f5f5');
-      }
-      localStorage.setItem('vbook_theme', mode);
-      // small haptic if available
-      if (navigator.vibrate) navigator.vibrate(15);
-    }
-
-    function updateMetaThemeColor(color) {
-      const m = document.querySelector('meta[name="theme-color"]');
-      if (m) m.setAttribute('content', color);
-    }
-
-    /* ---------------------------
-       Prevent duplicate submission:
-       - compute a stable hash of the submission object
-       - compare with localStorage last submitted hash
-       - if identical, prevent submission and show toast
-       --------------------------- */
-    function isDuplicateSubmission(submissionObj) {
-      try {
-        const s = stableStringify(submissionObj);
-        const h = simpleHash(s);
-        const last = localStorage.getItem(LS_LAST_HASH) || '';
-        if (last && last === h) return true;
-        // not duplicate yet
-        return false;
-      } catch (err) {
-        return false;
+        markContainerFilled(assignedPersonInput, false);
+        applyValidationVisual(assignedPersonInput, null);
       }
     }
 
-    function markSubmissionHash(submissionObj) {
-      try {
-        const s = stableStringify(submissionObj);
-        const h = simpleHash(s);
-        localStorage.setItem(LS_LAST_HASH, h);
-      } catch (err) {
-        console.warn("markSubmissionHash failed", err);
-      }
-    }
-
-    /* ---------------------------
-       Submit flow
-       - Validate fields (phone when India)
-       - Read files to base64
-       - Build FormData-like object (we send as application/x-www-form-urlencoded)
-       - Prevent duplicate submissions using localStorage hash
-       - If offline, push to local storage queue
-       - Provide ripple, spinner, and success animation on button
-       --------------------------- */
-    async function handleSubmit(ev) {
-      ev.preventDefault();
-
-      // Basic validations
-      // If India selected, phone must be 10 digits
-      if (country.value === 'India') {
-        const digits = phoneInput.value.replace(/\D/g,'');
-        if (digits.length !== 10) {
-          // mark invalid, prevent submit
-          applyValidationVisual(phoneInput, 'invalid');
-          phoneInput.focus();
-          showToast("Phone must be 10 digits for India");
-          return;
-        }
-      }
-
-      // gather form data into a plain object
-      const dataObj = {};
-      Array.from(form.elements).forEach(el => {
-        if (!el.name) return;
-        if (el.type === 'file') return; // handled separately below
-        dataObj[el.name] = el.value || "";
-      });
-
-      // prevent duplicate submission on refresh / repeated click
-      if (isDuplicateSubmission(dataObj)) {
-        showToast("This form appears to be already submitted (duplicate prevented).");
-        return;
-      }
-
-      // add timestamp client-side (server will also record server timestamp)
-      dataObj._clientTimestamp = new Date().toISOString();
-
-      // show button busy + small ripple at center
-      spawnRipple(submitBtn, submitBtn.getBoundingClientRect().width/2, submitBtn.getBoundingClientRect().height/2);
-
-      setSubmitBusy(true);
-      submitText.textContent = "Submitting...";
-
-      // read image files
-      const front = await readFileAsBase64(doc.getElementById('vcFront'));
-      const back = await readFileAsBase64(doc.getElementById('vcBack'));
-      if (front) { dataObj.vcFrontBase64 = front.base64; dataObj.vcFrontName = front.name; }
-      if (back) { dataObj.vcBackBase64 = back.base64; dataObj.vcBackName = back.name; }
-
-      // Build payload for application/x-www-form-urlencoded
-      const payload = new URLSearchParams();
-      Object.keys(dataObj).forEach(k => payload.append(k, dataObj[k]));
-
-      // If offline -> save to queue, inform user
-      if (!navigator.onLine) {
-        pushToOfflineQueue(dataObj);
-        setSubmitBusy(false);
-        submitText.textContent = "Saved offline";
-        showToast("You're offline — saved to queue and will sync when online");
-        markSubmissionHash(dataObj); // still mark hash to prevent accidental duplicate
-        setTimeout(() => { submitText.textContent = "Submit"; }, 1800);
-        return;
-      }
-
-      // Try send
-      try {
-        const res = await fetch(WEBAPP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: payload.toString()
-        });
-        const textRes = await res.text();
-
-        if (textRes && textRes.indexOf("SUCCESS") !== -1) {
-          // success
-          submitText.textContent = "Successful";
-          submitBtn.classList.add('submit-success');
-          markSubmissionHash(dataObj); // mark as last successful submission
-          showToast("Form submitted successfully ✅");
-          // reset form (keep theme & other settings)
-          setTimeout(() => {
-            form.reset();
-            // reset visual states
-            resetAllVisualStates();
-            populateCountries();
-            populateStates();
-            populateCitiesForState();
-            submitBtn.classList.remove('submit-success');
-            submitText.textContent = "Submit";
-            setSubmitBusy(false);
-          }, 900);
-        } else if (textRes && textRes.indexOf("DUPLICATE") !== -1) {
-          showToast("Server detected duplicate — not saved");
-          setSubmitBusy(false);
-          submitText.textContent = "Submit";
-        } else {
-          // server returned something unexpected -> treat as failure and queue
-          pushToOfflineQueue(dataObj);
-          showToast("Submission failed, saved locally. Will retry.");
-          setSubmitBusy(false);
-          submitText.textContent = "Submit";
-        }
-      } catch (err) {
-        // network/server error -> add to queue
-        pushToOfflineQueue(dataObj);
-        showToast("Error sending — saved to queue for retry");
-        setSubmitBusy(false);
-        submitText.textContent = "Submit";
-      }
-    }
-
-    /* ---------------------------
-       Reset visual states helper
-       --------------------------- */
-    function resetAllVisualStates() {
-      // remove filled, valid, invalid states except country default
-      document.querySelectorAll('.input-container').forEach(c => {
-        c.classList.remove('filled','valid','invalid');
-      });
-      // but set country filled (India default)
-      markContainerFilled(country, true);
-      applyValidationVisual(country, country.value === 'India' ? 'valid' : null);
-    }
-
-    /* ---------------------------
-       Utility: spawn ripple on button click
-       --------------------------- */
-    function spawnRipple(button, x, y) {
-      const rect = button.getBoundingClientRect();
-      const ripple = document.createElement('span');
-      ripple.className = 'ripple';
-      // calculate x,y relative to button
-      ripple.style.left = (x) + 'px';
-      ripple.style.top = (y) + 'px';
-      ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
-      button.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 700);
-    }
-
-    /* ---------------------------
-       Event binding & initialization
-       --------------------------- */
-
-    // Populate countries, states, cities on load
-    populateCountries();
-    populateStates();
-    populateCitiesForState();
-
-    // Theme initialization from localStorage or system preference
-    const savedTheme = localStorage.getItem('vbook_theme');
-    if (savedTheme) setTheme(savedTheme);
-    else {
-      // prefer system dark
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-    }
-
-    // Theme toggle click handler
-    themeToggleCheckbox.addEventListener('change', () => {
-      setTheme(themeToggleCheckbox.checked ? 'dark' : 'light');
-    });
-
-    // Country change behavior
-    country.addEventListener('change', (e) => {
-      const val = country.value;
-      // show/hide countryOther input
-      const countryOtherEl = doc.getElementById('countryOther');
-      if (val === 'Other') {
-        countryOtherEl.style.display = 'block';
-        markContainerFilled(country, true);
-      } else {
-        countryOtherEl.style.display = 'none';
-        markContainerFilled(country, true); // default selection counts as filled but only for country
-      }
-      // populate states/cities appropriately
-      populateStates();
-      populateCitiesForState();
-      // Visual: If India selected, color green; otherwise remove auto green
-      applyValidationVisual(country, val === 'India' ? 'valid' : null);
-    });
-
-    // State change -> populate cities
-    state.addEventListener('change', (e) => {
-      const val = state.value;
-      const stOther = doc.getElementById('stateOther');
-      if (val === 'Other') {
-        stOther.style.display = 'block';
-        markContainerFilled(state, true);
-      } else {
-        if (stOther) stOther.style.display = 'none';
-        markContainerFilled(state, val !== '');
-      }
-      populateCitiesForState();
-    });
-
-    // City change -> other handling
-    city.addEventListener('change', (e) => {
-      const val = city.value;
-      const cOther = doc.getElementById('cityOther');
-      if (val === 'Other') {
-        cOther.style.display = 'block';
-        markContainerFilled(city, true);
-      } else {
-        if (cOther) cOther.style.display = 'none';
-        markContainerFilled(city, val !== '');
-      }
-    });
-
-    // Designation select show other
-    designationSelect.addEventListener('change', () => {
-      const dOther = doc.getElementById('designationOther');
-      if (designationSelect.value === 'Other') dOther.style.display = 'block';
-      else dOther.style.display = 'none';
-      markContainerFilled(designationSelect, designationSelect.value !== '');
-    });
-
-    // Business select show other and assign department
     businessInput.addEventListener('change', () => {
-      const bOther = doc.getElementById('businessOther');
-      if (businessInput.value === 'Other') bOther.style.display = 'block';
-      else bOther.style.display = 'none';
       markContainerFilled(businessInput, businessInput.value !== '');
       assignDepartmentForBusiness();
     });
 
-    // Generic input listeners to add/remove .filled so labels float only after user interacts
-    const inputElements = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea');
-    inputElements.forEach(inp => {
-      inp.addEventListener('input', () => {
-        markContainerFilled(inp, inp.value.trim() !== '');
-      });
-      inp.addEventListener('blur', () => {
-        markContainerFilled(inp, inp.value.trim() !== '');
-      });
-      inp.addEventListener('focus', () => {
-        // add phone-focus if phone field
-        const container = inp.closest('.input-container');
-        if (inp.id === 'phone') container.classList.add('phone-focus');
-      });
-      inp.addEventListener('focusout', () => {
-        const container = inp.closest('.input-container');
-        if (inp.id === 'phone') container.classList.remove('phone-focus');
-      });
-    });
-
-    // Phone input special listeners (limits to digits)
-    phoneInput.addEventListener('input', (e) => {
-      // keep only digits
-      const start = phoneInput.selectionStart;
-      let digits = phoneInput.value.replace(/\D/g,'');
-      phoneInput.value = digits;
-      // update visual validation
-      validatePhoneField();
-    });
-    phoneInput.addEventListener('blur', () => validatePhoneField());
-    phoneInput.addEventListener('focus', () => {
-      // only show focus glow (blue), actual invalid/valid handled by validatePhoneField
-      const container = phoneInput.closest('.input-container');
-      container.classList.add('phone-focus');
-    });
-
-    // On load also attach validation for business -> department
     assignDepartmentForBusiness();
-
-    // Form submit handler
-    form.addEventListener('submit', handleSubmit);
-
-    // Online/offline listeners to flush queue when back online
-    window.addEventListener('online', () => {
-      showToast("You are online — syncing local queue...");
-      flushOfflineQueue();
-    });
-
-    // Attempt to flush any queued items on startup
-    setTimeout(() => { flushOfflineQueue(); }, 600);
-
-    // Capture location (best-effort)
-    function captureLocation() {
-      const latInput = doc.getElementById('latitude');
-      const lonInput = doc.getElementById('longitude');
-      if (!navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition((pos) => {
-        latInput.value = pos.coords.latitude;
-        lonInput.value = pos.coords.longitude;
-      }, (err) => {
-        // ignore on failure but allow app to continue
-        console.warn("Geolocation error:", err && err.message);
-      }, { enableHighAccuracy:true, timeout:5000 });
-    }
-    captureLocation();
-
-    // Prevent accidental double SUBMIT via refresh: mark last hash on success (done in handleSubmit)
-    // The isDuplicateSubmission check prevents resubmission.
-
-    /* ========================= End Initialization ========================= */
   })();
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
