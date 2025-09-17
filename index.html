@@ -6,7 +6,7 @@
   <title>VBook — Visitor Form</title>
 
   <!-- Theme color (will be updated dynamically by script) -->
-  <meta name="theme-color" content="#fdf9f7">
+  <meta name="theme-color" content="#f5f5f5">
 
   <!-- ====================
        Inline CSS
@@ -25,12 +25,12 @@
 
   /* ---------- Theme variables (light default) ---------- */
   :root{
-    --bg: #fdf9f7; /* updated for Copilot-like cream -> blue gradient */
+    --bg: #f5f7fa;
     --form-bg: #ffffff;
     --text: #222;
     --muted: #8f96a0;
     --primary: #007bff;   /* blue for focus state */
-    --success: #28a745;   /* sea green for success/valid */
+    --success: #28a745;   /* green for success/valid */
     --danger: #ff4d4d;    /* red for invalid */
     --glass-light: rgba(255,255,255,0.6);
     --glass-dark: rgba(30,30,30,0.55);
@@ -59,8 +59,7 @@
   html,body { height:100%; }
   body {
     font-family: "Inter", "Segoe UI", Roboto, system-ui, -apple-system, "Poppins", sans-serif;
-    /* background: updated to cream -> light blue feel similar to screenshot */
-    background: linear-gradient(180deg, var(--bg), #eaf6fb 140%);
+    background: linear-gradient(180deg, var(--bg), #e9eef6 140%);
     color: var(--text);
     min-height:100vh;
     display:flex;
@@ -163,6 +162,8 @@
     pointer-events:none;
   }
 
+  /* slide icons based on checkbox using sibling selectors in JS by toggling classes (we animate with JS) */
+
   /* ---------- Form container ---------- */
   .form-wrap {
     width:100%;
@@ -205,15 +206,14 @@
     margin:0;
   }
 
-  /* ---- Updated to pill inputs and filled background similar to Copilot UI ---- */
   .input-container input,
   .input-container select,
   .input-container textarea {
     width:100%;
     padding:12px 14px;
-    border-radius:12px;                /* pill-shaped */
-    border: none;                      /* remove visible border; glows use box-shadow */
-    background:#eef6fb;                /* subtle pale fill */
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,0.12);
+    background:transparent;
     font-size:15px;
     color:var(--text);
     outline:none;
@@ -254,12 +254,13 @@
     top:-10px;
     font-size:12px;
     color:var(--primary);
-    background: var(--form-bg); /* white background behind small label */
+    background: var(--form-bg);
     left:12px;
   }
 
   /* Make selects that have value look "filled" visually (JS will add .filled) */
   .input-container.filled select {
+    border-color:var(--primary);
     box-shadow: 0 6px 18px rgba(0,123,255,0.06);
   }
 
@@ -271,19 +272,22 @@
   .input-container input:focus,
   .input-container select:focus,
   .input-container textarea:focus {
-    box-shadow: 0 6px 18px rgba(0,123,255,0.12); /* blue glow on focus */
+    border-color: var(--primary);
+    box-shadow: 0 6px 18px rgba(0,123,255,0.08);
   }
 
-  /* ---------- Valid / Invalid states (sea green / red). Controlled by JS. ---------- */
+  /* ---------- Valid / Invalid states (green/red). Controlled by JS. ---------- */
   .input-container.valid input,
   .input-container.valid select,
   .input-container.valid textarea {
-    box-shadow: 0 8px 22px rgba(40,167,69,0.18); /* sea green glow */
+    border-color: var(--success) !important;
+    box-shadow: 0 8px 22px rgba(40,167,69,0.12);
   }
   .input-container.invalid input,
   .input-container.invalid select,
   .input-container.invalid textarea {
-    box-shadow: 0 8px 22px rgba(255,77,77,0.18);  /* red glow */
+    border-color: var(--danger) !important;
+    box-shadow: 0 8px 22px rgba(255,77,77,0.12);
   }
 
   /* The phone field will have special classes applied by JS:
@@ -292,7 +296,8 @@
      - .phone-valid (green glow when 10 digits for India)
   */
   .input-container.phone-focus input:focus {
-    box-shadow: 0 8px 26px rgba(0,123,255,0.14);
+    border-color: var(--primary);
+    box-shadow: 0 8px 26px rgba(0,123,255,0.12);
   }
 
   /* ---------- Textarea specifics ---------- */
@@ -304,7 +309,7 @@
   }
 
   /* ---------- File input smaller text ---------- */
-  input[type="file"] { font-size:13px; padding:8px; background:transparent; border-radius:8px; }
+  input[type="file"] { font-size:13px; padding:8px; }
 
   /* ---------- Submit button / ripple ---------- */
   .actions { margin-top:18px; display:flex; gap:14px; align-items:center; }
@@ -313,7 +318,7 @@
     overflow:hidden;
     border: none;
     padding:12px 16px;
-    border-radius:28px;
+    border-radius:10px;
     background: linear-gradient(90deg,var(--primary), #0056d6);
     color:white;
     font-weight:700;
@@ -462,7 +467,7 @@
         <!-- Email -->
         <div class="input-container" id="ic-email">
           <input id="email" name="email" type="email" placeholder=" " />
-          <label for="email">Email *</label>
+          <label for="email">Email</label>
         </div>
 
         <!-- Company -->
@@ -633,21 +638,10 @@
     const iconSun = doc.getElementById('iconSun');
     const iconMoon = doc.getElementById('iconMoon');
 
-    // top 10 countries (expanded per request)
-    const countryList = [
-      "India",
-      "United States",
-      "United Kingdom",
-      "Canada",
-      "Australia",
-      "Germany",
-      "France",
-      "United Arab Emirates",
-      "Singapore",
-      "China"
-    ];
+    // list of countries (India default)
+    const countryList = ["India","United States","United Kingdom","Canada","Australia","Other"];
 
-    // Full list of Indian states (28) + a few UT keys (common ones) with 4-6 major cities
+    // Inline states & major cities for India (4-6 main cities each)
     const statesAndCities = {
       "Select State": ["Select City"],
       "Andhra Pradesh": ["Visakhapatnam","Vijayawada","Guntur","Nellore","Tirupati"],
@@ -671,22 +665,14 @@
       "Odisha": ["Bhubaneswar","Cuttack","Rourkela","Sambalpur","Berhampur"],
       "Punjab": ["Amritsar","Ludhiana","Jalandhar","Patiala","Bathinda"],
       "Rajasthan": ["Jaipur","Jodhpur","Udaipur","Kota","Ajmer"],
-      "Sikkim": ["Gangtok","Namchi","Mangan","Pakyong","Geyzing"],
+      "Sikkim": ["Gangtok","Geyzing","Namchi","Mangan","Pakyong"],
       "Tamil Nadu": ["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem"],
       "Telangana": ["Hyderabad","Warangal","Nizamabad","Karimnagar","Khammam"],
       "Tripura": ["Agartala","Udaipur","Dharmanagar","Kailasahar","Belonia"],
       "Uttar Pradesh": ["Lucknow","Kanpur","Agra","Varanasi","Noida"],
       "Uttarakhand": ["Dehradun","Haridwar","Roorkee","Haldwani","Rishikesh"],
       "West Bengal": ["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
-      /* Add common Union Territories as keys so the state dropdown covers them too */
-      "Chandigarh": ["Chandigarh"],
-      "Delhi": ["New Delhi","Dwarka","Rohini","Saket","Connaught Place"],
-      "Puducherry": ["Puducherry","Karaikal","Yanam"],
-      "Andaman & Nicobar": ["Port Blair"],
-      "Jammu & Kashmir": ["Srinagar","Jammu"],
-      "Ladakh": ["Leh","Kargil"],
-      "Dadra & Nagar Haveli and Daman & Diu": ["Daman","Diu","Silvassa"],
-      "Lakshadweep": ["Kavaratti"]
+      "Chandigarh": ["Chandigarh","New Chandigarh"]
     };
 
     /* ---------------------------
@@ -974,7 +960,7 @@
         themeToggleCheckbox.checked = false;
         iconSun.style.transform = 'rotate(0deg) scale(1)'; iconSun.style.opacity = '1';
         iconMoon.style.transform = 'rotate(60deg) scale(.8)'; iconMoon.style.opacity = '0';
-        updateMetaThemeColor('#fdf9f7');
+        updateMetaThemeColor('#f5f5f5');
       }
       localStorage.setItem('vbook_theme', mode);
       // small haptic if available
@@ -1036,17 +1022,6 @@
           applyValidationVisual(phoneInput, 'invalid');
           phoneInput.focus();
           showToast("Phone must be 10 digits for India");
-          return;
-        }
-      }
-
-      // Email must contain @
-      const emailEl = doc.getElementById('email');
-      if (emailEl && emailEl.value) {
-        if (emailEl.value.indexOf('@') === -1) {
-          applyValidationVisual(emailEl, 'invalid');
-          emailEl.focus();
-          showToast("Please enter a valid email (missing @)");
           return;
         }
       }
@@ -1261,23 +1236,9 @@
     inputElements.forEach(inp => {
       inp.addEventListener('input', () => {
         markContainerFilled(inp, inp.value.trim() !== '');
-
-        // EMAIL validation: must contain @ to be considered valid
-        if (inp.id === 'email') {
-          if (inp.value.indexOf('@') !== -1) applyValidationVisual(inp, 'valid');
-          else if (inp.value.trim() !== '') applyValidationVisual(inp, 'invalid');
-          else applyValidationVisual(inp, null);
-        }
       });
       inp.addEventListener('blur', () => {
         markContainerFilled(inp, inp.value.trim() !== '');
-
-        // on blur also validate email field
-        if (inp.id === 'email') {
-          if (inp.value.indexOf('@') !== -1) applyValidationVisual(inp, 'valid');
-          else if (inp.value.trim() !== '') applyValidationVisual(inp, 'invalid');
-          else applyValidationVisual(inp, null);
-        }
       });
       inp.addEventListener('focus', () => {
         // add phone-focus if phone field
@@ -1344,3 +1305,4 @@
   </script>
 </body>
 </html>
+
