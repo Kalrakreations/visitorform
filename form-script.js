@@ -261,7 +261,7 @@ form.addEventListener("submit", async (e) => {
   const formData = new FormData(form);
 
   try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbzy7zIA-j1ZxojlfXFkZ5raHSfy7Ll42srj_TeG9DBELIATdUqa2J3lzwFsVzfa-sMSIQ/exec", {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbzAB2NfTH5fSbYzmQEh_3cw4rTRQjvOsa7fXdwoD7HqyDfi-bGO56K92yad0ozPfGDHmA/exec", {
       method: "POST",
       body: formData
     });
@@ -297,6 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
 /**************************************************************
  * END OF SCRIPT
  **************************************************************/
+
 
 
 
