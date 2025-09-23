@@ -542,6 +542,7 @@
           <select id="business" name="business" >
             <option value="">Select Business</option>
             <option>Employee</option>
+            <option>Organics</option>
             <option>B2B</option>
             <option>Trader</option>
             <option>Retailer</option>
@@ -935,6 +936,8 @@
         dept = "Marketing"; person = "Arsh";
       } else if (val.indexOf('quality') !== -1 || val.indexOf('certification') !== -1) {
         dept = "Quality"; person = "Neha";
+      } else if (val.indexOf('organics') !== -1) {
+        dept = "Organics"; person = "Tarun Sen";
       } else if (val.indexOf('hotel') !== -1 || val.indexOf('horeca') !== -1) {
         dept = "Sales"; person = "Yogesh Sardana";
       } else {
@@ -1343,6 +1346,7 @@
   </script>
 </body>
 </html>
+
 
 
 
