@@ -542,6 +542,7 @@
           <select id="business" name="business" >
             <option value="">Select Business</option>
             <option>Employee</option>
+            <option>B2B</option>
             <option>Trader</option>
             <option>Retailer</option>
             <option>Wholesaler</option>
@@ -924,18 +925,18 @@
     function assignDepartmentForBusiness() {
       const val = (businessInput.value || "").toLowerCase();
       let dept = "", person = "";
-      if (val.indexOf('exporter') !== -1 || val.indexOf('certification') !== -1) {
-        dept = "B2B"; person = "Adhiraj";
+      if (val.indexOf('exporter') !== -1 || val.indexOf('B2B') !== -1) {
+        dept = "Quality"; person = "Adhiraj Pathania";
       } else if (val.indexOf('digital') !== -1 || val.indexOf('e-commerce') !== -1 || val.indexOf('ecommerce') !== -1) {
-        dept = "Ecommerce"; person = "Sahil";
+        dept = "Ecommerce"; person = "Sahil Kalra";
       } else if (['trader','retailer','wholesaler','distributor'].some(k => val.indexOf(k) !== -1)) {
-        dept = "General Trade"; person = "Amit";
+        dept = "General Trade"; person = "Amit Gupta";
       } else if (val.indexOf('marketing') !== -1) {
         dept = "Marketing"; person = "Arsh";
-      } else if (val.indexOf('quality') !== -1) {
+      } else if (val.indexOf('quality') !== -1 || val.indexOf('certification') !== -1) {
         dept = "Quality"; person = "Neha";
       } else if (val.indexOf('hotel') !== -1 || val.indexOf('horeca') !== -1) {
-        dept = "Sales"; person = "Yogesh";
+        dept = "Sales"; person = "Yogesh Sardana";
       } else {
         dept = ""; person = "";
       }
@@ -1342,6 +1343,7 @@
   </script>
 </body>
 </html>
+
 
 
 
